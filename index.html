@@ -496,12 +496,13 @@ const D = {
     }},
     {id:2,modulo:'comercial',actualizado_en:'2026-08-20T15:00:00.000Z',datos:{
       serie:[
-        {periodo:'2026-07-27',ventas:3120,transacciones:96,ticket:32.50},
-        {periodo:'2026-08-03',ventas:3350,transacciones:101,ticket:33.17},
-        {periodo:'2026-08-10',ventas:2980,transacciones:104,ticket:28.65},
-        {periodo:'2026-08-17',ventas:3510,transacciones:99,ticket:35.45}
+        {periodo:'2026-07-27',ventas:3120,transacciones:96,ticket:32.50,ventasAnioAnt:2680,transaccionesAnioAnt:88,ticketAnioAnt:30.45,presupuesto:3000,cumplimiento:104.0},
+        {periodo:'2026-08-03',ventas:3350,transacciones:101,ticket:33.17,ventasAnioAnt:2750,transaccionesAnioAnt:92,ticketAnioAnt:29.89,presupuesto:3000,cumplimiento:111.7},
+        {periodo:'2026-08-10',ventas:2980,transacciones:104,ticket:28.65,ventasAnioAnt:2820,transaccionesAnioAnt:95,ticketAnioAnt:29.68,presupuesto:3000,cumplimiento:99.3},
+        {periodo:'2026-08-17',ventas:3510,transacciones:99,ticket:35.45,ventasAnioAnt:2690,transaccionesAnioAnt:90,ticketAnioAnt:29.89,presupuesto:3000,cumplimiento:117.0}
       ],
       insights:[
+        {tipo:'positivo',titulo:'Crecimiento sólido contra el año pasado',texto:'17 ago vendió $3,510.00, 30.5% más que el mismo periodo del año anterior ($2,690.00). Es una señal de crecimiento real, no solo un mes puntualmente bueno.'},
         {tipo:'oportunidad',titulo:'Más transacciones, pero el ticket promedio bajó',texto:'Las transacciones subieron 3.0% pero el ticket promedio cayó 13.6%. Está entrando más gente, pero compra menos en cada visita — vale revisar si conviene empujar ventas cruzadas o combos.'},
         {tipo:'positivo',titulo:'Rango de ticket promedio en el periodo visible',texto:'El ticket más alto fue $35.45 (17 ago) y el más bajo $28.65 (10 ago). Vale comparar qué fue distinto esos días.'}
       ]
@@ -1859,13 +1860,32 @@ function parseFuenteComercial(filas){
   // en hojas con comparativo año-vs-año (Venta 2026 / Venta 2025 / Diferencia
   // Ventas Vs Año Anterior / Presupuesto...) hay que ignorar las columnas de
   // comparación/diferencia para no agarrar una resta en vez del valor real,
-  // y quedarse con la primera columna "limpia" que matchea (la más reciente).
+  // y quedarse con la columna del año más reciente como la actual.
   const limpios=headers.filter(h=>!/diferencia|\bvs\b|cumpl|presupuesto/i.test(h));
   const col=(claves)=>buscaCol(limpios,...claves)||buscaCol(headers,...claves);
+  // cuando hay dos columnas del mismo indicador con años distintos (Venta
+  // 2026 / Venta 2025), se toman ambas: la más reciente como actual y la
+  // anterior como comparativo — así se aprovecha el año-vs-año que ya trae
+  // la hoja en vez de solo comparar contra el mes inmediatamente anterior.
+  function porAnio(claves){
+    return limpios
+      .filter(h=>claves.some(c=>normHeader(h).includes(c)))
+      .map(h=>{ const m=h.match(/(20\d{2})/); return {h,anio:m?+m[1]:null}; })
+      .filter(x=>x.anio)
+      .sort((a,b)=>b.anio-a.anio);
+  }
   const periodoCol=buscaCol(headers,'fecha','periodo','semana','mes','dia');
-  const ventasCol=col(['venta','ingreso','facturacion','monto_total','total_ventas','total']);
-  const transCol=col(['transaccion','numero_ventas','num_ventas','ordenes','pedidos','n_ventas','ventas_num']);
-  const ticketCol=col(['ticket']);
+  const ventasAnios=porAnio(['venta','ingreso','facturacion']);
+  const transAnios=porAnio(['transaccion','numero_ventas','num_ventas','ordenes','pedidos']);
+  const ticketAnios=porAnio(['ticket']);
+  const ventasCol=ventasAnios[0]?.h||col(['venta','ingreso','facturacion','monto_total','total_ventas','total']);
+  const ventasAntCol=ventasAnios[1]?.h||null;
+  const transCol=transAnios[0]?.h||col(['transaccion','numero_ventas','num_ventas','ordenes','pedidos','n_ventas','ventas_num']);
+  const transAntCol=transAnios[1]?.h||null;
+  const ticketCol=ticketAnios[0]?.h||col(['ticket']);
+  const ticketAntCol=ticketAnios[1]?.h||null;
+  const presupuestoCol=buscaCol(headers,'presupuesto');
+  const cumplCol=buscaCol(headers,'cumpl');
   if(!periodoCol||!ventasCol) return [];
   const out=[];
   filas.forEach(f=>{
@@ -1874,7 +1894,14 @@ function parseFuenteComercial(filas){
     const transacciones=transCol?parseValorNum(f[transCol]):null;
     let ticket=ticketCol?parseValorNum(f[ticketCol]):null;
     if(ticket==null&&transacciones) ticket=ventas/transacciones;
-    out.push({periodo:isoD(pd),ventas,transacciones,ticket});
+    const ventasAnioAnt=ventasAntCol?parseValorNum(f[ventasAntCol]):null;
+    const transaccionesAnioAnt=transAntCol?parseValorNum(f[transAntCol]):null;
+    let ticketAnioAnt=ticketAntCol?parseValorNum(f[ticketAntCol]):null;
+    if(ticketAnioAnt==null&&transaccionesAnioAnt) ticketAnioAnt=ventasAnioAnt!=null?ventasAnioAnt/transaccionesAnioAnt:null;
+    const presupuesto=presupuestoCol?parseValorNum(f[presupuestoCol]):null;
+    let cumplimiento=cumplCol?parseValorNum(f[cumplCol]):null;
+    if(cumplimiento==null&&presupuesto) cumplimiento=ventas/presupuesto*100;
+    out.push({periodo:isoD(pd),ventas,transacciones,ticket,ventasAnioAnt,transaccionesAnioAnt,ticketAnioAnt,presupuesto,cumplimiento});
   });
   return out;
 }
@@ -1882,6 +1909,41 @@ function insightsComerciales(serie){
   const out=[], n=serie.length;
   if(n<2) return out;
   const ult=serie[n-1], prev=serie[n-2];
+
+  // año contra año: mucho más útil para gerencia que solo mes vs mes anterior,
+  // porque saca el efecto de estacionalidad.
+  if(ult.ventasAnioAnt!=null&&ult.ventasAnioAnt>0){
+    const pctYoY=(ult.ventas-ult.ventasAnioAnt)/ult.ventasAnioAnt*100;
+    if(pctYoY>15){
+      out.push({tipo:'positivo',titulo:'Crecimiento sólido contra el año pasado',
+        texto:`${fecha(ult.periodo)} vendió ${usd(ult.ventas)}, ${pctYoY.toFixed(1)}% más que el mismo mes del año anterior (${usd(ult.ventasAnioAnt)}). Es una señal de crecimiento real, no solo un mes puntualmente bueno.`});
+    } else if(pctYoY<-10){
+      out.push({tipo:'alerta',titulo:'Cayendo contra el mismo mes del año pasado',
+        texto:`${fecha(ult.periodo)} vendió ${usd(ult.ventas)}, ${Math.abs(pctYoY).toFixed(1)}% menos que hace un año (${usd(ult.ventasAnioAnt)}). Vale revisar si es algo puntual o una tendencia que se viene sosteniendo.`});
+    }
+    if(prev.ventasAnioAnt!=null&&prev.ventasAnioAnt>0){
+      const pctMoM=prev.ventas?(ult.ventas-prev.ventas)/Math.abs(prev.ventas)*100:0;
+      const pctYoYPrev=(prev.ventas-prev.ventasAnioAnt)/prev.ventasAnioAnt*100;
+      if(pctMoM>0&&pctYoY<0&&pctYoY>pctYoYPrev+5){
+        out.push({tipo:'oportunidad',titulo:'Mejorando mes a mes, todavía por debajo del año pasado',
+          texto:`Contra el mes anterior las ventas subieron ${pctMoM.toFixed(1)}%, y la brecha contra el año pasado se está cerrando (venía ${Math.abs(pctYoYPrev).toFixed(1)}% abajo, ahora ${Math.abs(pctYoY).toFixed(1)}%). La mejora es real, aunque todavía no alcanza el nivel histórico.`});
+      }
+    }
+  }
+
+  // cumplimiento de presupuesto: racha reciente, no solo el último mes.
+  const conPresupuesto=serie.filter(s=>s.cumplimiento!=null);
+  if(conPresupuesto.length>=2){
+    const ultimosN=conPresupuesto.slice(-3);
+    if(ultimosN.length>=2&&ultimosN.every(s=>s.cumplimiento<100)){
+      out.push({tipo:'alerta',titulo:`${ultimosN.length} periodos seguidos por debajo del presupuesto`,
+        texto:`El cumplimiento de presupuesto viene en ${ultimosN.map(s=>s.cumplimiento.toFixed(0)+'%').join(', ')}. Vale revisar si la meta está bien calibrada para el momento del negocio, o si hay algo puntual frenando las ventas.`});
+    } else if(ultimosN.length>=2&&ultimosN.every(s=>s.cumplimiento>=100)){
+      out.push({tipo:'positivo',titulo:`${ultimosN.length} periodos seguidos cumpliendo o superando el presupuesto`,
+        texto:`El cumplimiento viene en ${ultimosN.map(s=>s.cumplimiento.toFixed(0)+'%').join(', ')}. Con esta consistencia vale considerar si es momento de subir la meta.`});
+    }
+  }
+
   if(ult.transacciones!=null&&prev.transacciones!=null&&ult.ticket!=null&&prev.ticket!=null){
     const pcTrans=prev.transacciones?(ult.transacciones-prev.transacciones)/Math.abs(prev.transacciones)*100:0;
     const pcTicket=prev.ticket?(ult.ticket-prev.ticket)/Math.abs(prev.ticket)*100:0;
@@ -2069,6 +2131,8 @@ function pintaComercial(fila){
   }
   const n=serie.length, ult=serie[n-1], prev=serie[n-2];
   const vent=ventanaComparada(serie,'ventas',4);
+  const hayAnioAnt=serie.some(s=>s.ventasAnioAnt!=null);
+  const hayPresupuesto=serie.some(s=>s.presupuesto!=null||s.cumplimiento!=null);
 
   function kpiC(nom,val,act,prev,{sub=''}={}){
     let del='<span class="delta d-flat">sin dato previo</span>';
@@ -2078,6 +2142,13 @@ function pintaComercial(fila){
     }
     return `<div class="kpi"><div class="kpi-top"><span class="kpi-nom">${nom}</span></div>
       <div class="kpi-val">${val}</div>${del}${sub?`<div class="kpi-sub">${esc(sub)}</div>`:''}</div>`;
+  }
+  function kpiPresupuesto(valor,sub){
+    const bueno=valor>=100;
+    return `<div class="kpi"><div class="kpi-top"><span class="kpi-nom">Cumplimiento de presupuesto</span></div>
+      <div class="kpi-val">${valor.toFixed(0)}%</div>
+      <span class="delta ${bueno?'d-up':'d-down'}">${bueno?'▲':'▼'} ${Math.abs(valor-100).toFixed(0)} pts ${bueno?'sobre':'bajo'} meta</span>
+      ${sub?`<div class="kpi-sub">${esc(sub)}</div>`:''}</div>`;
   }
 
   pinta(`
@@ -2089,11 +2160,21 @@ function pintaComercial(fila){
     </div>
 
     <div class="kpis">
-      ${kpiC('Ventas',usd(ult.ventas),ult.ventas,prev?.ventas)}
+      ${kpiC('Ventas',usd(ult.ventas),ult.ventas,prev?.ventas,{sub:'Vs. periodo anterior'})}
       ${kpiC('Transacciones',ult.transacciones!=null?n0(ult.transacciones):'—',ult.transacciones,prev?.transacciones)}
       ${kpiC('Ticket promedio',ult.ticket!=null?usd(ult.ticket):'—',ult.ticket,prev?.ticket)}
       ${kpiC('Ventas · últ. '+vent.n+' periodos',usd(vent.actual),vent.actual,vent.anterior,{sub:'Vs. los '+vent.n+' anteriores'})}
     </div>
+
+    ${(hayAnioAnt||hayPresupuesto)?`<div class="card" style="margin-top:16px">
+      <div class="card-head"><h3>Comparativo anual y presupuesto</h3></div>
+      <div class="kpis">
+        ${ult.ventasAnioAnt!=null?kpiC('Ventas vs año anterior',usd(ult.ventas),ult.ventas,ult.ventasAnioAnt,{sub:usd(ult.ventasAnioAnt)+' en el mismo periodo del año pasado'}):''}
+        ${ult.cumplimiento!=null?kpiPresupuesto(ult.cumplimiento,ult.presupuesto!=null?'Meta: '+usd(ult.presupuesto):''):''}
+        ${ult.transaccionesAnioAnt!=null?kpiC('Transacciones vs año anterior',n0(ult.transacciones),ult.transacciones,ult.transaccionesAnioAnt,{sub:n0(ult.transaccionesAnioAnt)+' el año pasado'}):''}
+        ${ult.ticketAnioAnt!=null?kpiC('Ticket promedio vs año anterior',usd(ult.ticket),ult.ticket,ult.ticketAnioAnt,{sub:usd(ult.ticketAnioAnt)+' el año pasado'}):''}
+      </div>
+    </div>`:''}
 
     <div class="card" style="margin-top:24px">
       <div class="card-head"><h3>Evolución de ventas</h3>
@@ -2109,11 +2190,16 @@ function pintaComercial(fila){
 
     <div class="bloque"><span class="eyebrow">Detalle por periodo</span>
       <div class="tabla-box"><table>
-        <thead><tr><th>Periodo</th><th>Ventas</th><th>Transacciones</th><th>Ticket promedio</th></tr></thead>
-        <tbody>${serie.slice(-16).reverse().map(x=>`<tr>
+        <thead><tr><th>Periodo</th><th>Ventas</th>${hayAnioAnt?'<th>Año anterior</th><th>Δ%</th>':''}<th>Transacciones</th><th>Ticket promedio</th>${hayPresupuesto?'<th>Cumpl. presupuesto</th>':''}</tr></thead>
+        <tbody>${serie.slice(-16).reverse().map(x=>{
+          const pcYoY=x.ventasAnioAnt?((x.ventas-x.ventasAnioAnt)/Math.abs(x.ventasAnioAnt)*100):null;
+          return `<tr>
           <td>${esc(fecha(x.periodo))}</td><td class="mono">${usd(x.ventas)}</td>
+          ${hayAnioAnt?`<td class="mono">${x.ventasAnioAnt!=null?usd(x.ventasAnioAnt):'—'}</td><td class="mono">${pcYoY==null?'—':(pcYoY>0?'▲ ':'▼ ')+Math.abs(pcYoY).toFixed(1)+'%'}</td>`:''}
           <td class="mono">${x.transacciones!=null?n0(x.transacciones):'—'}</td>
-          <td class="mono">${x.ticket!=null?usd(x.ticket):'—'}</td></tr>`).join('')}</tbody>
+          <td class="mono">${x.ticket!=null?usd(x.ticket):'—'}</td>
+          ${hayPresupuesto?`<td class="mono">${x.cumplimiento!=null?x.cumplimiento.toFixed(0)+'%':'—'}</td>`:''}</tr>`;
+        }).join('')}</tbody>
       </table></div>
     </div>`);
 
@@ -2127,15 +2213,26 @@ function dibujaComercial(serie){
   const marca=getComputedStyle(document.documentElement).getPropertyValue('--marca').trim()||'#D89A1E';
   Chart.defaults.font.family="'Figtree', sans-serif";
   Chart.defaults.color='#8A8175';
+  const datasets=[
+    {type:'bar',label:'Ventas',data:serie.map(s=>s.ventas),
+     backgroundColor:'rgba(26,24,20,.11)',hoverBackgroundColor:'rgba(26,24,20,.2)',
+     borderRadius:2,yAxisID:'y',order:3,barPercentage:.64}
+  ];
+  if(serie.some(s=>s.ventasAnioAnt!=null)){
+    datasets.push({type:'line',label:'Ventas año anterior',data:serie.map(s=>s.ventasAnioAnt),
+      borderColor:'#8A8175',borderWidth:1.5,borderDash:[4,3],tension:.3,pointRadius:2,
+      pointBackgroundColor:'#8A8175',yAxisID:'y',order:2,spanGaps:true});
+  }
+  if(serie.some(s=>s.presupuesto!=null)){
+    datasets.push({type:'line',label:'Presupuesto',data:serie.map(s=>s.presupuesto),
+      borderColor:'#9C4F35',borderWidth:1.5,borderDash:[2,2],tension:0,pointRadius:0,
+      yAxisID:'y',order:2,spanGaps:true});
+  }
+  datasets.push({type:'line',label:'Ticket promedio',data:serie.map(s=>s.ticket),borderColor:marca,borderWidth:2.5,
+    tension:.34,pointRadius:4,pointHoverRadius:7,pointBackgroundColor:'#FDFCF9',
+    pointBorderColor:marca,pointBorderWidth:2,yAxisID:'y2',order:1});
   new Chart($('#chCom'),{
-    data:{labels:serie.map(s=>fecha(s.periodo)),datasets:[
-      {type:'bar',label:'Ventas',data:serie.map(s=>s.ventas),
-       backgroundColor:'rgba(26,24,20,.11)',hoverBackgroundColor:'rgba(26,24,20,.2)',
-       borderRadius:2,yAxisID:'y',order:2,barPercentage:.64},
-      {type:'line',label:'Ticket promedio',data:serie.map(s=>s.ticket),borderColor:marca,borderWidth:2.5,
-       tension:.34,pointRadius:4,pointHoverRadius:7,pointBackgroundColor:'#FDFCF9',
-       pointBorderColor:marca,pointBorderWidth:2,yAxisID:'y2',order:1}
-    ]},
+    data:{labels:serie.map(s=>fecha(s.periodo)),datasets},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
       layout:{padding:{top:18}},
       scales:{x:{grid:{display:false},ticks:{font:{size:10.5}}},
@@ -2144,7 +2241,7 @@ function dibujaComercial(serie){
       plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:9,padding:14,font:{size:11.5}}},
         tooltip:{backgroundColor:'#1A1814',padding:11,cornerRadius:3,
           bodyFont:{family:"'JetBrains Mono', monospace",size:11.5},
-          callbacks:{label:ctx=>ctx.dataset.label+'  '+usd(ctx.parsed.y)}}}}
+          callbacks:{label:ctx=>ctx.dataset.label+'  '+(ctx.parsed.y==null?'—':usd(ctx.parsed.y))}}}}
   });
 }
 

@@ -471,6 +471,41 @@ const D = {
     {id:3,orden:3,activo:true,titulo:'Decisiones informadas, no corazonadas',cuerpo:'Todos los números que ves salen directo de tu cuenta publicitaria, sin retoques ni maquillaje. Si una semana no rindió, lo vas a leer aquí antes de que nos lo preguntes. Preferimos que sepas exactamente dónde estamos parados a que te lleves una sorpresa dentro de tres meses. Un dato incómodo a tiempo vale más que un informe bonito tarde.'},
     {id:4,orden:4,activo:true,titulo:'Los tropiezos son información, no fracasos',cuerpo:'En publicidad digital nada funciona a la primera y todo se desgasta con el tiempo. Un anuncio que dejó de rendir no es un error: es la señal de que tu público ya lo vio suficiente y toca renovar. Por eso cada reporte tiene una sección de oportunidades de mejora con la acción concreta que vamos a tomar. No es una lista de culpas. Es la agenda de la semana que viene.'},
     {id:5,orden:5,activo:true,titulo:'Cómo leer tu review sin ser experto',cuerpo:'Arriba están los cuatro números que de verdad importan, escritos en español simple, con una flecha que te dice si mejoraron o empeoraron contra la semana pasada. Verde es que va bien. Ámbar es que hay algo que atender. Cada número tiene un botón de ayuda por si quieres saber qué significa exactamente. Abajo está el detalle campaña por campaña, quién está viendo tus anuncios y la evolución de las últimas ocho semanas. Si algo no te cuadra, escríbenos: este review es el punto de partida de la conversación, no el reemplazo.'}
+  ],
+  fuentes_datos:[
+    {id:1,modulo:'financiero',etiqueta:'Pérdidas y Ganancias',url:'',orden:1},
+    {id:2,modulo:'financiero',etiqueta:'Ingresos',url:'',orden:2},
+    {id:3,modulo:'financiero',etiqueta:'Gastos de Funcionamiento',url:'',orden:3},
+    {id:4,modulo:'comercial',etiqueta:'Ventas y transacciones',url:'',orden:1}
+  ],
+  datos_gerencia:[
+    {id:1,modulo:'financiero',actualizado_en:'2026-08-20T15:00:00.000Z',datos:{
+      periodos:['2026-04-01','2026-05-01','2026-06-01','2026-07-01','2026-08-01'],
+      serieIngresos:[{periodo:'2026-04-01',valor:18500},{periodo:'2026-05-01',valor:19200},{periodo:'2026-06-01',valor:17800},{periodo:'2026-07-01',valor:20100},{periodo:'2026-08-01',valor:21400}],
+      serieGastos:[{periodo:'2026-04-01',valor:14200},{periodo:'2026-05-01',valor:14600},{periodo:'2026-06-01',valor:14100},{periodo:'2026-07-01',valor:15900},{periodo:'2026-08-01',valor:17300}],
+      serieUtilNeta:[{periodo:'2026-04-01',valor:4300},{periodo:'2026-05-01',valor:4600},{periodo:'2026-06-01',valor:3700},{periodo:'2026-07-01',valor:4200},{periodo:'2026-08-01',valor:4100}],
+      margen:[{periodo:'2026-04-01',valor:23.2},{periodo:'2026-05-01',valor:24.0},{periodo:'2026-06-01',valor:20.8},{periodo:'2026-07-01',valor:20.9},{periodo:'2026-08-01',valor:19.2}],
+      gastosUlt:{'Nómina':9800,'Arriendo':2600,'Servicios básicos':1450,'Marketing':1900,'Otros gastos':1550},
+      gastosPrev:{'Nómina':9600,'Arriendo':2600,'Servicios básicos':1380,'Marketing':1350,'Otros gastos':1200},
+      insights:[
+        {tipo:'alerta',titulo:'Los gastos están creciendo más rápido que los ingresos',texto:'En agosto 2026 los gastos de funcionamiento subieron 8.8% mientras los ingresos lo hicieron 6.5%. Si esto se repite otro periodo, el margen se va a seguir achicando aunque el negocio esté facturando más.'},
+        {tipo:'alerta',titulo:'El margen neto lleva tres periodos cayendo',texto:'Pasó de 24.0% a 20.9% y ahora a 19.2%. No es un dato de una sola semana o mes: es una tendencia que vale la pena frenar.'},
+        {tipo:'oportunidad',titulo:'"Marketing" subió 40.7% en un periodo',texto:'Pasó de $1,350.00 a $1,900.00 entre julio y agosto de 2026. Vale entender qué lo explica.'},
+        {tipo:'alerta',titulo:'La nómina concentra más de la mitad del gasto',texto:'"Nómina" representó 57% del gasto de funcionamiento en agosto de 2026. Cuando un rubro concentra tanto, cualquier variación ahí mueve todo el resultado — vale la pena tenerlo monitoreado de cerca.'}
+      ]
+    }},
+    {id:2,modulo:'comercial',actualizado_en:'2026-08-20T15:00:00.000Z',datos:{
+      serie:[
+        {periodo:'2026-07-27',ventas:3120,transacciones:96,ticket:32.50},
+        {periodo:'2026-08-03',ventas:3350,transacciones:101,ticket:33.17},
+        {periodo:'2026-08-10',ventas:2980,transacciones:104,ticket:28.65},
+        {periodo:'2026-08-17',ventas:3510,transacciones:99,ticket:35.45}
+      ],
+      insights:[
+        {tipo:'oportunidad',titulo:'Más transacciones, pero el ticket promedio bajó',texto:'Las transacciones subieron 3.0% pero el ticket promedio cayó 13.6%. Está entrando más gente, pero compra menos en cada visita — vale revisar si conviene empujar ventas cruzadas o combos.'},
+        {tipo:'positivo',titulo:'Rango de ticket promedio en el periodo visible',texto:'El ticket más alto fue $35.45 (17 ago) y el más bajo $28.65 (10 ago). Vale comparar qué fue distinto esos días.'}
+      ]
+    }}
   ]
 };
 let demoSeq = 100;
@@ -481,6 +516,7 @@ function demoSb(tabla,q,metodo,cuerpo){
   const pinQ = tomar(/pin=eq\.([^&]+)/);
   const cliQ = tomar(/cliente_id=eq\.([^&]+)/);
   const rolQ = tomar(/rol=eq\.([^&]+)/);
+  const moduloQ = tomar(/modulo=eq\.([^&]+)/);
   const soloActivos = q.includes('activo=eq.true');
   let filas = D[tabla] || [];
 
@@ -489,7 +525,9 @@ function demoSb(tabla,q,metodo,cuerpo){
       ? filas.find(f=>f.cliente_id===cuerpo.cliente_id && f.semana_inicio===cuerpo.semana_inicio)
       : (tabla==='industria'
           ? filas.find(f=>f.cliente_id===cuerpo.cliente_id && f.semana===cuerpo.semana)
-          : null);
+          : (tabla==='datos_gerencia'
+              ? filas.find(f=>f.modulo===cuerpo.modulo)
+              : null));
     if(existente){ Object.assign(existente,cuerpo); return [existente]; }
     if(tabla==='clientes' && filas.some(f=>f.pin===cuerpo.pin)) throw new Error('duplicate key');
     const nueva = {id:++demoSeq,activo:true,...cuerpo};
@@ -521,6 +559,7 @@ function demoSb(tabla,q,metodo,cuerpo){
   if(pinQ) out = out.filter(f=>f.pin===pinQ);
   if(cliQ) out = out.filter(f=>String(f.cliente_id)===String(cliQ));
   if(rolQ) out = out.filter(f=>f.rol===rolQ);
+  if(moduloQ) out = out.filter(f=>f.modulo===moduloQ);
   if(soloActivos) out = out.filter(f=>f.activo);
   if(q.includes('order=orden.asc'))          out.sort((a,b)=>a.orden-b.orden);
   if(q.includes('order=nombre.asc'))         out.sort((a,b)=>a.nombre.localeCompare(b.nombre));
@@ -606,7 +645,7 @@ function arrancar(){
   $('#whoRol').textContent=sesion.rol==='admin'?'Administración':(sesion.industria||'Cliente');
   if(sesion.acento&&sesion.rol!=='admin') document.documentElement.style.setProperty('--marca',sesion.acento);
   TABS = sesion.rol==='admin'
-    ? [['Review semanal',adminReporte],['Industria',adminIndustria],['Academia',adminAcademia],['Proyectos',adminProyectos],['Clientes y PINs',adminClientes],['Textos IMG',adminTextos]]
+    ? [['Review semanal',adminReporte],['Financiero',adminFinanciero],['Comercial',adminComercial],['Industria',adminIndustria],['Academia',adminAcademia],['Proyectos',adminProyectos],['Clientes y PINs',adminClientes],['Textos IMG',adminTextos],['Ajustes',adminAjustes]]
     : [['Tu semana',paneSemana],['Academia',paneAcademia],['Proyectos en marcha',paneProyectos],['Tu industria',paneIndustria],['Cómo trabajamos',paneImagine]];
   $('#tabs').innerHTML='';
   TABS.forEach(([nom],i)=>{
@@ -1540,6 +1579,646 @@ async function adminTextos(){
       catch(e){ aviso('No se pudo cambiar: '+e.message,false); }
     };
   });
+}
+
+/* ═══════════════════════════════════════
+   GERENCIA · FINANCIERO Y COMERCIAL
+   Lee pestañas de Google Sheets publicadas como CSV
+   (Archivo → Compartir → Publicar en la Web → elegir
+   la pestaña exacta → formato CSV) y guarda en Supabase
+   un resumen ya calculado (tabla datos_gerencia), para
+   que abrir la pestaña sea instantáneo. El botón
+   "Actualizar ahora" vuelve a leer las hojas y recalcula.
+   ═══════════════════════════════════════ */
+const MESES_ABR={ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,set:8,oct:9,nov:10,dic:11};
+
+function normHeader(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim(); }
+function buscaCol(headers,...claves){
+  for(const c of claves){
+    const hit=headers.find(h=>normHeader(h).includes(c));
+    if(hit) return hit;
+  }
+  return null;
+}
+function parseValorNum(txt){
+  if(txt==null) return null;
+  let s=String(txt).trim();
+  if(s==='') return null;
+  let neg=false;
+  if(/^\(.*\)$/.test(s)){ neg=true; s=s.slice(1,-1); }
+  s=s.replace(/[^0-9.,-]/g,'');
+  if(s==='') return null;
+  if(s.includes(',')&&s.includes('.')){
+    if(s.lastIndexOf(',')>s.lastIndexOf('.')) s=s.replace(/\./g,'').replace(',','.');
+    else s=s.replace(/,/g,'');
+  } else if(s.includes(',')){
+    s = /,\d{1,2}$/.test(s) ? s.replace(',','.') : s.replace(/,/g,'');
+  }
+  const v=parseFloat(s);
+  if(isNaN(v)) return null;
+  return neg?-v:v;
+}
+function parsePeriodo(txt){
+  const d=parseFecha(txt);
+  if(d) return d;
+  if(txt==null) return null;
+  const t=String(txt).trim().toLowerCase();
+  if(!t) return null;
+  for(const [abr,idx] of Object.entries(MESES_ABR)){
+    const rx=new RegExp('^'+abr+"[a-z]*[\\s./-]*'?(\\d{2,4})$");
+    const mm=t.match(rx);
+    if(mm){ let a=+mm[1]; if(a<100)a+=2000; return new Date(a,idx,1); }
+  }
+  return null;
+}
+async function cargaCSV(url){
+  const r=await fetch(url);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const txt=await r.text();
+  if(txt.trim().startsWith('<')) throw new Error('NO_PUBLICADO');
+  return Papa.parse(txt,{header:true,skipEmptyLines:true}).data;
+}
+function fmtMes(iso){ const [y,m]=iso.split('-').map(Number); return MESL[m-1]+' '+y; }
+function haceTiempo(iso){
+  if(!iso) return 'nunca';
+  const min=Math.floor((Date.now()-new Date(iso).getTime())/60000);
+  if(min<1) return 'hace instantes';
+  if(min<60) return `hace ${min} min`;
+  const h=Math.floor(min/60);
+  if(h<24) return `hace ${h} h`;
+  const d=Math.floor(h/24);
+  return `hace ${d} día${d===1?'':'s'}`;
+}
+function ventanaComparada(serie,campo,n){
+  const N=Math.min(n,Math.floor(serie.length/2))||1;
+  const actual=serie.slice(-N).reduce((s,x)=>s+(x[campo]||0),0);
+  const anterior=serie.slice(-2*N,-N).reduce((s,x)=>s+(x[campo]||0),0);
+  return {actual,anterior,n:N};
+}
+
+/* ── financiero: parseo y cálculo ── */
+function parseFuenteFinanciera(filas,etiquetaFuente){
+  if(!filas.length) return [];
+  const headers=Object.keys(filas[0]);
+  const conceptoCol=buscaCol(headers,'concepto','cuenta','rubro','categoria','detalle','item','nombre');
+  const periodCols=headers.filter(h=>h!==conceptoCol && parsePeriodo(h));
+  const registros=[];
+  if(conceptoCol && periodCols.length>=2){
+    filas.forEach(f=>{
+      const concepto=String(f[conceptoCol]||'').trim();
+      if(!concepto) return;
+      periodCols.forEach(pc=>{
+        const pd=parsePeriodo(pc), valor=parseValorNum(f[pc]);
+        if(pd && valor!=null) registros.push({fuente:etiquetaFuente,concepto,periodo:isoD(pd),valor});
+      });
+    });
+    if(registros.length) return registros;
+  }
+  const periodoCol=buscaCol(headers,'fecha','periodo','mes','semana');
+  const valorCol=buscaCol(headers,'valor','monto','importe','saldo','total');
+  if(periodoCol && valorCol){
+    filas.forEach(f=>{
+      const pd=parsePeriodo(f[periodoCol]), valor=parseValorNum(f[valorCol]);
+      if(!pd||valor==null) return;
+      const concepto=conceptoCol?(String(f[conceptoCol]||'').trim()||etiquetaFuente):etiquetaFuente;
+      registros.push({fuente:etiquetaFuente,concepto,periodo:isoD(pd),valor});
+    });
+  }
+  return registros;
+}
+function calculaFinanciero(fuentesRegistros){
+  const todos=fuentesRegistros.flatMap(f=>f.registros);
+  if(!todos.length) return null;
+  const periodos=[...new Set(todos.map(r=>r.periodo))].sort();
+  const esFuenteIngreso=fu=>normHeader(fu).includes('ingreso');
+  const esFuenteGasto=fu=>normHeader(fu).includes('gasto');
+  const fuentesIngreso=fuentesRegistros.filter(f=>esFuenteIngreso(f.etiqueta));
+  const fuentesGasto=fuentesRegistros.filter(f=>esFuenteGasto(f.etiqueta));
+
+  function sumaOTotal(regs){
+    const totalRow=regs.find(r=>/^total/i.test(r.concepto.trim()));
+    return totalRow?totalRow.valor:regs.reduce((s,r)=>s+r.valor,0);
+  }
+  function serieDe(fuentesFiltradas,regexConcepto){
+    return periodos.map(p=>{
+      let valor=0;
+      if(fuentesFiltradas.length){
+        fuentesFiltradas.forEach(f=>{ valor+=sumaOTotal(f.registros.filter(r=>r.periodo===p)); });
+      } else {
+        const regsP=todos.filter(r=>r.periodo===p && regexConcepto.test(r.concepto));
+        const totalRow=regsP.find(r=>/^total/i.test(r.concepto.trim()));
+        valor=totalRow?totalRow.valor:regsP.reduce((s,r)=>s+r.valor,0);
+      }
+      return {periodo:p,valor};
+    });
+  }
+
+  const serieIngresos=serieDe(fuentesIngreso,/ingres|venta/i);
+  const serieGastos=serieDe(fuentesGasto,/gasto|costo/i);
+
+  let serieUtilNeta=periodos.map(p=>{
+    const r=todos.find(x=>x.periodo===p && /utilidad neta|resultado neto|utilidad del ejercicio/i.test(x.concepto));
+    return {periodo:p,valor:r?r.valor:null};
+  });
+  if(serieUtilNeta.some(x=>x.valor==null)){
+    serieUtilNeta=periodos.map((p,i)=>({periodo:p,valor:serieIngresos[i].valor-serieGastos[i].valor}));
+  }
+  const margen=periodos.map((p,i)=>{
+    const ing=serieIngresos[i].valor;
+    return {periodo:p,valor:ing?(serieUtilNeta[i].valor/ing*100):0};
+  });
+
+  function desglose(p){
+    if(p==null) return {};
+    const regs=fuentesGasto.length
+      ? fuentesGasto.flatMap(f=>f.registros).filter(r=>r.periodo===p && !/^total/i.test(r.concepto.trim()))
+      : todos.filter(r=>r.periodo===p && /gasto|costo/i.test(r.concepto) && !/^total/i.test(r.concepto.trim()));
+    const m={};
+    regs.forEach(r=>{ m[r.concepto]=(m[r.concepto]||0)+r.valor; });
+    return m;
+  }
+  const gastosUlt=desglose(periodos[periodos.length-1]);
+  const gastosPrev=desglose(periodos[periodos.length-2]);
+
+  return {periodos,serieIngresos,serieGastos,serieUtilNeta,margen,gastosUlt,gastosPrev};
+}
+function insightsFinancieros(calc){
+  const out=[];
+  const {periodos,serieIngresos,serieGastos,serieUtilNeta,margen,gastosUlt,gastosPrev}=calc;
+  const n=periodos.length;
+  if(n<2) return out;
+
+  const ultIng=serieIngresos[n-1].valor, prevIng=serieIngresos[n-2].valor;
+  const ultGas=serieGastos[n-1].valor, prevGas=serieGastos[n-2].valor;
+  const pctIng=prevIng?(ultIng-prevIng)/Math.abs(prevIng)*100:0;
+  const pctGas=prevGas?(ultGas-prevGas)/Math.abs(prevGas)*100:0;
+
+  if(pctGas>pctIng+5){
+    out.push({tipo:'alerta',titulo:'Los gastos están creciendo más rápido que los ingresos',
+      texto:`En ${fmtMes(periodos[n-1])} los gastos de funcionamiento subieron ${pctGas.toFixed(1)}% mientras los ingresos lo hicieron ${pctIng.toFixed(1)}%. Si esto se repite otro periodo, el margen se va a seguir achicando aunque el negocio esté facturando más.`});
+  }
+  if(serieUtilNeta[n-1].valor<0){
+    out.push({tipo:'alerta',titulo:'El último periodo cerró con pérdida',
+      texto:`${fmtMes(periodos[n-1])} tuvo una utilidad neta negativa de ${usd(Math.abs(serieUtilNeta[n-1].valor))}. Vale revisar de inmediato qué la explica antes de que se repita.`});
+  }
+  const totalGastoUlt=Object.values(gastosUlt).reduce((s,v)=>s+v,0);
+  if(totalGastoUlt>0){
+    const [topConcepto,topValor]=Object.entries(gastosUlt).sort((a,b)=>b[1]-a[1])[0];
+    const share=topValor/totalGastoUlt*100;
+    if(share>35){
+      out.push({tipo:'alerta',titulo:'Un solo rubro concentra buena parte del gasto',
+        texto:`"${topConcepto}" representó ${share.toFixed(0)}% del gasto de funcionamiento en ${fmtMes(periodos[n-1])}. Cuando un rubro concentra tanto, cualquier variación ahí mueve todo el resultado — vale la pena tenerlo monitoreado de cerca.`});
+    }
+    let mayor=null;
+    Object.keys(gastosUlt).forEach(c=>{
+      const a=gastosUlt[c], p=gastosPrev[c]||0;
+      if(p>0){
+        const pct=(a-p)/p*100;
+        if(!mayor||Math.abs(pct)>Math.abs(mayor.pct)) mayor={concepto:c,pct,a,p};
+      }
+    });
+    if(mayor && Math.abs(mayor.pct)>20){
+      out.push({tipo:mayor.pct>0?'oportunidad':'positivo',
+        titulo:`"${mayor.concepto}" ${mayor.pct>0?'subió':'bajó'} ${Math.abs(mayor.pct).toFixed(0)}% en un periodo`,
+        texto:`Pasó de ${usd(mayor.p)} a ${usd(mayor.a)} entre ${fmtMes(periodos[n-2])} y ${fmtMes(periodos[n-1])}. ${mayor.pct>0?'Vale entender qué lo explica.':'Buena señal si fue una decisión buscada.'}`});
+    }
+  }
+  if(n>=3){
+    const m1=margen[n-3].valor,m2=margen[n-2].valor,m3=margen[n-1].valor;
+    if(m3<m2&&m2<m1) out.push({tipo:'alerta',titulo:'El margen neto lleva tres periodos cayendo',
+      texto:`Pasó de ${m1.toFixed(1)}% a ${m2.toFixed(1)}% y ahora a ${m3.toFixed(1)}%. No es un dato de una sola semana o mes: es una tendencia que vale la pena frenar.`});
+    if(m3>m2&&m2>m1) out.push({tipo:'positivo',titulo:'El margen neto mejora hace tres periodos seguidos',
+      texto:`Subió de ${m1.toFixed(1)}% a ${m2.toFixed(1)}% y ahora a ${m3.toFixed(1)}%. Vale identificar qué se hizo distinto para sostenerlo.`});
+  }
+  if(!out.length) out.push({tipo:'positivo',titulo:'Sin puntos ciegos evidentes esta lectura',
+    texto:'Con los datos disponibles no encontramos alertas relevantes. Se sigue revisando automáticamente con cada actualización.'});
+  return out;
+}
+
+/* ── comercial: parseo y cálculo ── */
+function parseFuenteComercial(filas){
+  if(!filas.length) return [];
+  const headers=Object.keys(filas[0]);
+  const periodoCol=buscaCol(headers,'fecha','periodo','semana','mes','dia');
+  const ventasCol=buscaCol(headers,'ventas','ingreso','facturacion','monto_total','total_ventas','total');
+  const transCol=buscaCol(headers,'transaccion','numero_ventas','num_ventas','ordenes','pedidos','n_ventas','ventas_num');
+  const ticketCol=buscaCol(headers,'ticket');
+  if(!periodoCol||!ventasCol) return [];
+  const out=[];
+  filas.forEach(f=>{
+    const pd=parsePeriodo(f[periodoCol]), ventas=parseValorNum(f[ventasCol]);
+    if(!pd||ventas==null) return;
+    const transacciones=transCol?parseValorNum(f[transCol]):null;
+    let ticket=ticketCol?parseValorNum(f[ticketCol]):null;
+    if(ticket==null&&transacciones) ticket=ventas/transacciones;
+    out.push({periodo:isoD(pd),ventas,transacciones,ticket});
+  });
+  return out;
+}
+function insightsComerciales(serie){
+  const out=[], n=serie.length;
+  if(n<2) return out;
+  const ult=serie[n-1], prev=serie[n-2];
+  if(ult.transacciones!=null&&prev.transacciones!=null&&ult.ticket!=null&&prev.ticket!=null){
+    const pcTrans=prev.transacciones?(ult.transacciones-prev.transacciones)/Math.abs(prev.transacciones)*100:0;
+    const pcTicket=prev.ticket?(ult.ticket-prev.ticket)/Math.abs(prev.ticket)*100:0;
+    if(pcTrans>10&&pcTicket<-10){
+      out.push({tipo:'oportunidad',titulo:'Más transacciones, pero el ticket promedio bajó',
+        texto:`Las transacciones subieron ${pcTrans.toFixed(1)}% pero el ticket promedio cayó ${Math.abs(pcTicket).toFixed(1)}%. Está entrando más gente, pero compra menos en cada visita — vale revisar si conviene empujar ventas cruzadas o combos.`});
+    } else if(pcTrans<-10&&pcTicket>10){
+      out.push({tipo:'oportunidad',titulo:'Menos transacciones, pero cada una vale más',
+        texto:`Las transacciones cayeron ${Math.abs(pcTrans).toFixed(1)}% mientras el ticket promedio subió ${pcTicket.toFixed(1)}%. Está entrando menos gente pero gastando más — vale entender si es una tendencia buscada o si se está perdiendo volumen.`});
+    }
+  }
+  if(n>=3){
+    const v1=serie[n-3].ventas,v2=serie[n-2].ventas,v3=serie[n-1].ventas;
+    if(v3<v2&&v2<v1) out.push({tipo:'alerta',titulo:'Las ventas llevan tres periodos cayendo',
+      texto:`Bajaron de ${usd(v1)} a ${usd(v2)} y ahora a ${usd(v3)}. Vale mirar qué cambió: pauta, precios, competencia o algo puntual del negocio.`});
+    if(v3>v2&&v2>v1) out.push({tipo:'positivo',titulo:'Las ventas crecen hace tres periodos seguidos',
+      texto:`Subieron de ${usd(v1)} a ${usd(v2)} y ahora a ${usd(v3)}. Vale identificar qué se hizo distinto para sostenerlo.`});
+  }
+  const validos=serie.filter(s=>s.ticket!=null);
+  if(validos.length>=3){
+    const max=validos.reduce((a,b)=>b.ticket>a.ticket?b:a);
+    const min=validos.reduce((a,b)=>b.ticket<a.ticket?b:a);
+    out.push({tipo:'positivo',titulo:'Rango de ticket promedio en el periodo visible',
+      texto:`El ticket más alto fue ${usd(max.ticket)} (${fecha(max.periodo)}) y el más bajo ${usd(min.ticket)} (${fecha(min.periodo)}). Vale comparar qué fue distinto esos días.`});
+  }
+  if(!out.length) out.push({tipo:'positivo',titulo:'Sin puntos ciegos evidentes esta lectura',
+    texto:'Con los datos disponibles no encontramos alertas relevantes. Se sigue revisando automáticamente con cada actualización.'});
+  return out;
+}
+
+/* ── traer y recalcular (llamado desde Financiero, Comercial y Ajustes) ── */
+async function refrescaFinanciero(btn){
+  if(btn){btn.disabled=true;btn.textContent='Actualizando…';}
+  try{
+    const fuentes=await sb('fuentes_datos',{q:'?modulo=eq.financiero&select=*&order=orden.asc'});
+    if(!fuentes.length) throw new Error('Agrega al menos una fuente en Ajustes.');
+    if(DEMO) throw new Error('En modo demostración no se jalan datos reales. Conecta Supabase y tus Google Sheets para usar esta función.');
+    const porFuente=[];
+    for(const f of fuentes){
+      if(!f.url) continue;
+      const filas=await cargaCSV(f.url);
+      porFuente.push({etiqueta:f.etiqueta,registros:parseFuenteFinanciera(filas,f.etiqueta)});
+    }
+    const calc=calculaFinanciero(porFuente);
+    if(!calc) throw new Error('No pudimos leer columnas reconocibles. Revisa los nombres de columnas o el formato en Ajustes.');
+    const datos={...calc,insights:insightsFinancieros(calc)};
+    const guardado=await sb('datos_gerencia',{metodo:'POST',q:'?on_conflict=modulo',
+      extra:{'Prefer':'return=representation,resolution=merge-duplicates'},
+      cuerpo:{modulo:'financiero',datos,actualizado_en:new Date().toISOString()}});
+    return guardado[0];
+  } finally {
+    if(btn){btn.disabled=false;btn.textContent='Actualizar ahora';}
+  }
+}
+async function refrescaComercial(btn){
+  if(btn){btn.disabled=true;btn.textContent='Actualizando…';}
+  try{
+    const fuentes=await sb('fuentes_datos',{q:'?modulo=eq.comercial&select=*&order=orden.asc'});
+    if(!fuentes.length) throw new Error('Agrega al menos una fuente en Ajustes.');
+    if(DEMO) throw new Error('En modo demostración no se jalan datos reales. Conecta Supabase y tus Google Sheets para usar esta función.');
+    let serie=[];
+    for(const f of fuentes){
+      if(!f.url) continue;
+      const filas=await cargaCSV(f.url);
+      serie=serie.concat(parseFuenteComercial(filas));
+    }
+    serie.sort((a,b)=>a.periodo.localeCompare(b.periodo));
+    if(!serie.length) throw new Error('No pudimos leer columnas reconocibles. Revisa los nombres de columnas o el formato en Ajustes.');
+    const datos={serie,insights:insightsComerciales(serie)};
+    const guardado=await sb('datos_gerencia',{metodo:'POST',q:'?on_conflict=modulo',
+      extra:{'Prefer':'return=representation,resolution=merge-duplicates'},
+      cuerpo:{modulo:'comercial',datos,actualizado_en:new Date().toISOString()}});
+    return guardado[0];
+  } finally {
+    if(btn){btn.disabled=false;btn.textContent='Actualizar ahora';}
+  }
+}
+
+/* ── pintado: financiero ── */
+function pintaFinanciero(fila){
+  const d=fila.datos||{}, periodos=d.periodos||[];
+  if(!periodos.length){
+    pinta(`<div class="vacio"><h3>Sin datos todavía</h3>
+      <p>Dale a actualizar para traer los datos por primera vez desde tus hojas de Google Sheets.</p>
+      <button class="btn" id="btnActFin" style="margin-top:18px">Traer datos ahora</button></div>`);
+    $('#btnActFin').onclick=async e=>{
+      try{ pintaFinanciero(await refrescaFinanciero(e.currentTarget)); }
+      catch(err){ aviso('No se pudo actualizar: '+err.message,false); }
+    };
+    return;
+  }
+  const n=periodos.length;
+  const ing=d.serieIngresos, gas=d.serieGastos, uti=d.serieUtilNeta, mar=d.margen;
+  const insights=d.insights||[];
+  const gastosUlt=d.gastosUlt||{}, gastosPrev=d.gastosPrev||{};
+  const filasGasto=Object.entries(gastosUlt).sort((a,b)=>b[1]-a[1]);
+
+  function kpiF(nom,val,act,prev,{menorEsMejor=false,sub=''}={}){
+    let del='<span class="delta d-flat">sin dato previo</span>';
+    if(prev!=null&&prev!==0){
+      const pc=(act-prev)/Math.abs(prev)*100, plano=Math.abs(pc)<1;
+      const mejoro=menorEsMejor?pc<0:pc>0;
+      del=`<span class="delta ${plano?'d-flat':(mejoro?'d-up':'d-down')}">${plano?'=':(pc>0?'▲':'▼')} ${Math.abs(pc).toFixed(1)}%</span>`;
+    }
+    return `<div class="kpi"><div class="kpi-top"><span class="kpi-nom">${nom}</span></div>
+      <div class="kpi-val">${val}</div>${del}${sub?`<div class="kpi-sub">${esc(sub)}</div>`:''}</div>`;
+  }
+
+  pinta(`
+    <div class="masthead"><span class="eyebrow">Gerencia · Financiero</span>
+      <h2>Cómo va la <em>salud financiera</em></h2></div>
+    <div class="issue">
+      <span class="eyebrow">${esc(fmtMes(periodos[n-1]))}</span>
+      <span class="eyebrow">Actualizado ${esc(haceTiempo(fila.actualizado_en))}</span>
+    </div>
+
+    <div class="kpis">
+      ${kpiF('Ingresos',usd(ing[n-1].valor),ing[n-1].valor,ing[n-2]?.valor,{sub:'En '+fmtMes(periodos[n-1])})}
+      ${kpiF('Gastos de funcionamiento',usd(gas[n-1].valor),gas[n-1].valor,gas[n-2]?.valor,{menorEsMejor:true})}
+      ${kpiF('Utilidad neta',usd(uti[n-1].valor),uti[n-1].valor,uti[n-2]?.valor)}
+      ${kpiF('Margen neto',mar[n-1].valor.toFixed(1)+'%',mar[n-1].valor,mar[n-2]?.valor)}
+    </div>
+
+    <div class="card" style="margin-top:24px">
+      <div class="card-head"><h3>Ingresos, gastos y utilidad</h3>
+        <button class="btn sec mini" id="btnActFin">Actualizar ahora</button></div>
+      <div class="canvas-box"><canvas id="chFin"></canvas></div>
+    </div>
+
+    ${filasGasto.length?`<div class="bloque"><span class="eyebrow">Gastos por rubro · ${esc(fmtMes(periodos[n-1]))}</span>
+      <div class="tabla-box"><table>
+        <thead><tr><th>Rubro</th><th>Monto</th><th>Vs. periodo anterior</th></tr></thead>
+        <tbody>${filasGasto.map(([c,v])=>{
+          const p=gastosPrev[c];
+          const pc=p?((v-p)/Math.abs(p)*100):null;
+          return `<tr><td>${esc(c)}</td><td class="mono">${usd(v)}</td>
+            <td class="mono">${pc==null?'—':(Math.abs(pc)<1?'= ':(pc>0?'▲ ':'▼ '))+Math.abs(pc).toFixed(1)+'%'}</td></tr>`;
+        }).join('')}</tbody>
+      </table></div></div>`:''}
+
+    <div class="bloque"><span class="eyebrow">Puntos ciegos y recomendaciones</span>
+      <div class="items">${insights.map(i=>`<div class="item">
+        <div class="marca-i ${i.tipo==='positivo'?'m-bien':'m-opo'}"></div>
+        <div><h3>${esc(i.titulo)}</h3><p>${esc(i.texto)}</p></div></div>`).join('')}</div>
+    </div>`);
+
+  $('#btnActFin').onclick=async e=>{
+    try{ pintaFinanciero(await refrescaFinanciero(e.currentTarget)); }
+    catch(err){ aviso('No se pudo actualizar: '+err.message,false); }
+  };
+  dibujaFinanciero(periodos,ing,gas,uti);
+}
+function dibujaFinanciero(periodos,ing,gas,uti){
+  Chart.defaults.font.family="'Figtree', sans-serif";
+  Chart.defaults.color='#8A8175';
+  new Chart($('#chFin'),{
+    type:'line',
+    data:{labels:periodos.map(fmtMes),datasets:[
+      {label:'Ingresos',data:ing.map(x=>x.valor),borderColor:'#4A6B4E',backgroundColor:'rgba(74,107,78,.12)',borderWidth:2.5,tension:.3,pointRadius:3,fill:false},
+      {label:'Gastos',data:gas.map(x=>x.valor),borderColor:'#9C4F35',backgroundColor:'rgba(156,79,53,.12)',borderWidth:2.5,tension:.3,pointRadius:3,fill:false},
+      {label:'Utilidad neta',data:uti.map(x=>x.valor),borderColor:'#D89A1E',backgroundColor:'rgba(216,154,30,.14)',borderWidth:2.5,tension:.3,pointRadius:3,fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10.5}}},
+        y:{grid:{color:'rgba(26,24,20,.08)'},ticks:{callback:v=>'$'+v,font:{size:10}}}},
+      plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:9,padding:14,font:{size:11.5}}},
+        tooltip:{backgroundColor:'#1A1814',padding:11,cornerRadius:3,
+          bodyFont:{family:"'JetBrains Mono', monospace",size:11.5},
+          callbacks:{label:ctx=>ctx.dataset.label+'  '+usd(ctx.parsed.y)}}}}
+  });
+}
+
+/* ── pintado: comercial ── */
+function pintaComercial(fila){
+  const d=fila.datos||{}, serie=d.serie||[], insights=d.insights||[];
+  if(!serie.length){
+    pinta(`<div class="vacio"><h3>Sin datos todavía</h3>
+      <p>Dale a actualizar para traer los datos por primera vez desde tu hoja de Google Sheets.</p>
+      <button class="btn" id="btnActCom" style="margin-top:18px">Traer datos ahora</button></div>`);
+    $('#btnActCom').onclick=async e=>{
+      try{ pintaComercial(await refrescaComercial(e.currentTarget)); }
+      catch(err){ aviso('No se pudo actualizar: '+err.message,false); }
+    };
+    return;
+  }
+  const n=serie.length, ult=serie[n-1], prev=serie[n-2];
+  const vent=ventanaComparada(serie,'ventas',4);
+
+  function kpiC(nom,val,act,prev,{sub=''}={}){
+    let del='<span class="delta d-flat">sin dato previo</span>';
+    if(prev!=null&&prev!==0){
+      const pc=(act-prev)/Math.abs(prev)*100, plano=Math.abs(pc)<1;
+      del=`<span class="delta ${plano?'d-flat':(pc>0?'d-up':'d-down')}">${plano?'=':(pc>0?'▲':'▼')} ${Math.abs(pc).toFixed(1)}%</span>`;
+    }
+    return `<div class="kpi"><div class="kpi-top"><span class="kpi-nom">${nom}</span></div>
+      <div class="kpi-val">${val}</div>${del}${sub?`<div class="kpi-sub">${esc(sub)}</div>`:''}</div>`;
+  }
+
+  pinta(`
+    <div class="masthead"><span class="eyebrow">Gerencia · Comercial</span>
+      <h2>Cómo van las <em>ventas</em></h2></div>
+    <div class="issue">
+      <span class="eyebrow">${esc(fecha(ult.periodo))}</span>
+      <span class="eyebrow">Actualizado ${esc(haceTiempo(fila.actualizado_en))}</span>
+    </div>
+
+    <div class="kpis">
+      ${kpiC('Ventas',usd(ult.ventas),ult.ventas,prev?.ventas)}
+      ${kpiC('Transacciones',ult.transacciones!=null?n0(ult.transacciones):'—',ult.transacciones,prev?.transacciones)}
+      ${kpiC('Ticket promedio',ult.ticket!=null?usd(ult.ticket):'—',ult.ticket,prev?.ticket)}
+      ${kpiC('Ventas · últ. '+vent.n+' periodos',usd(vent.actual),vent.actual,vent.anterior,{sub:'Vs. los '+vent.n+' anteriores'})}
+    </div>
+
+    <div class="card" style="margin-top:24px">
+      <div class="card-head"><h3>Evolución de ventas</h3>
+        <button class="btn sec mini" id="btnActCom">Actualizar ahora</button></div>
+      <div class="canvas-box"><canvas id="chCom"></canvas></div>
+    </div>
+
+    <div class="bloque"><span class="eyebrow">Insights comerciales</span>
+      <div class="items">${insights.map(i=>`<div class="item">
+        <div class="marca-i ${i.tipo==='positivo'?'m-bien':'m-opo'}"></div>
+        <div><h3>${esc(i.titulo)}</h3><p>${esc(i.texto)}</p></div></div>`).join('')}</div>
+    </div>
+
+    <div class="bloque"><span class="eyebrow">Detalle por periodo</span>
+      <div class="tabla-box"><table>
+        <thead><tr><th>Periodo</th><th>Ventas</th><th>Transacciones</th><th>Ticket promedio</th></tr></thead>
+        <tbody>${serie.slice(-16).reverse().map(x=>`<tr>
+          <td>${esc(fecha(x.periodo))}</td><td class="mono">${usd(x.ventas)}</td>
+          <td class="mono">${x.transacciones!=null?n0(x.transacciones):'—'}</td>
+          <td class="mono">${x.ticket!=null?usd(x.ticket):'—'}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>`);
+
+  $('#btnActCom').onclick=async e=>{
+    try{ pintaComercial(await refrescaComercial(e.currentTarget)); }
+    catch(err){ aviso('No se pudo actualizar: '+err.message,false); }
+  };
+  dibujaComercial(serie);
+}
+function dibujaComercial(serie){
+  const marca=getComputedStyle(document.documentElement).getPropertyValue('--marca').trim()||'#D89A1E';
+  Chart.defaults.font.family="'Figtree', sans-serif";
+  Chart.defaults.color='#8A8175';
+  new Chart($('#chCom'),{
+    data:{labels:serie.map(s=>fecha(s.periodo)),datasets:[
+      {type:'bar',label:'Ventas',data:serie.map(s=>s.ventas),
+       backgroundColor:'rgba(26,24,20,.11)',hoverBackgroundColor:'rgba(26,24,20,.2)',
+       borderRadius:2,yAxisID:'y',order:2,barPercentage:.64},
+      {type:'line',label:'Ticket promedio',data:serie.map(s=>s.ticket),borderColor:marca,borderWidth:2.5,
+       tension:.34,pointRadius:4,pointHoverRadius:7,pointBackgroundColor:'#FDFCF9',
+       pointBorderColor:marca,pointBorderWidth:2,yAxisID:'y2',order:1}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      layout:{padding:{top:18}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10.5}}},
+        y:{grid:{color:'rgba(26,24,20,.08)'},ticks:{callback:v=>'$'+v,font:{size:10}}},
+        y2:{position:'right',grid:{display:false},ticks:{callback:v=>'$'+v,font:{size:10}}}},
+      plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:9,padding:14,font:{size:11.5}}},
+        tooltip:{backgroundColor:'#1A1814',padding:11,cornerRadius:3,
+          bodyFont:{family:"'JetBrains Mono', monospace",size:11.5},
+          callbacks:{label:ctx=>ctx.dataset.label+'  '+usd(ctx.parsed.y)}}}}
+  });
+}
+
+/* ── admin: entradas de las pestañas Financiero y Comercial ── */
+async function adminFinanciero(){
+  pinta('<div class="cargando">Cargando…</div>');
+  let fuentes,fila;
+  try{
+    fuentes=await sb('fuentes_datos',{q:'?modulo=eq.financiero&select=*&order=orden.asc'});
+    fila=(await sb('datos_gerencia',{q:'?modulo=eq.financiero&select=*&limit=1'}))[0]||null;
+  }catch(e){ return vacio('No pudimos cargar el módulo financiero','Revisa tu conexión y vuelve a intentar.'); }
+  if(!fuentes.length) return vacio('Todavía no hay Google Sheets conectados','Ve a la pestaña Ajustes y agrega los links de Pérdidas y Ganancias, Ingresos y Gastos de Funcionamiento.');
+  pintaFinanciero(fila||{datos:{},actualizado_en:null});
+}
+async function adminComercial(){
+  pinta('<div class="cargando">Cargando…</div>');
+  let fuentes,fila;
+  try{
+    fuentes=await sb('fuentes_datos',{q:'?modulo=eq.comercial&select=*&order=orden.asc'});
+    fila=(await sb('datos_gerencia',{q:'?modulo=eq.comercial&select=*&limit=1'}))[0]||null;
+  }catch(e){ return vacio('No pudimos cargar el módulo comercial','Revisa tu conexión y vuelve a intentar.'); }
+  if(!fuentes.length) return vacio('Todavía no hay Google Sheets conectados','Ve a la pestaña Ajustes y agrega el link de tu hoja de ventas.');
+  pintaComercial(fila||{datos:{},actualizado_en:null});
+}
+
+/* ── ajustes ── */
+async function adminAjustes(){
+  pinta('<div class="cargando">Cargando…</div>');
+  const [finF,comF,finD,comD]=await Promise.all([
+    sb('fuentes_datos',{q:'?modulo=eq.financiero&select=*&order=orden.asc'}),
+    sb('fuentes_datos',{q:'?modulo=eq.comercial&select=*&order=orden.asc'}),
+    sb('datos_gerencia',{q:'?modulo=eq.financiero&select=actualizado_en&limit=1'}),
+    sb('datos_gerencia',{q:'?modulo=eq.comercial&select=actualizado_en&limit=1'})
+  ]);
+
+  function listaFuentes(rows){
+    if(!rows.length) return '<p style="font-size:13.5px;color:var(--tinta3);margin:10px 0 16px">Todavía no hay hojas conectadas.</p>';
+    return `<div class="lista-cli" style="margin:10px 0 16px">${rows.map(r=>`
+      <div class="cli-row">
+        <div class="cli-main">
+          <div style="flex:1;min-width:200px">
+            <strong>${esc(r.etiqueta)}</strong>
+            <div style="font-size:11.5px;color:var(--tinta3);margin-top:3px;word-break:break-all">${esc(r.url||'Sin link todavía')}</div>
+          </div>
+          <div class="cli-sp">
+            <button class="btn sec mini" data-fed="${r.id}">Editar</button>
+            <button class="btn peligro mini" data-fdel="${r.id}" data-nom="${esc(r.etiqueta)}">Eliminar</button>
+          </div>
+        </div>
+        <div class="cli-edit" id="fed${r.id}">
+          <div class="campo"><label>Etiqueta</label><input value="${esc(r.etiqueta)}" data-ff="etiqueta" data-fid="${r.id}"></div>
+          <div class="campo"><label>Link CSV publicado</label><input value="${esc(r.url||'')}" data-ff="url" data-fid="${r.id}" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv"></div>
+          <button class="btn mini" data-fsave="${r.id}">Guardar</button>
+        </div>
+      </div>`).join('')}</div>`;
+  }
+
+  pinta(`
+    <div class="head"><span class="eyebrow">Gerencia</span>
+      <h2>Ajustes</h2>
+      <p>Conecta cada pestaña de tus Google Sheets como fuente de datos. En Google Sheets: Archivo → Compartir → Publicar en la Web → elige la pestaña exacta → formato CSV → Publicar. Pega ese link aquí. Ten en cuenta que un link publicado puede verlo cualquiera que lo tenga, así que no lo compartas fuera del equipo.</p></div>
+
+    <div class="card">
+      <div class="card-head"><h3>Financiero</h3>
+        <button class="btn sec mini" id="btnActFinAj">Actualizar ahora</button></div>
+      <p style="font-size:12.5px;color:var(--tinta3)">Última actualización: ${esc(haceTiempo(finD[0]?.actualizado_en))}</p>
+      ${listaFuentes(finF)}
+      <div class="fila">
+        <div class="campo"><label>Etiqueta</label><input id="fEtiF" placeholder="Pérdidas y Ganancias / Ingresos / Gastos de Funcionamiento"></div>
+        <div class="campo"><label>Link CSV publicado</label><input id="fUrlF" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv"></div>
+      </div>
+      <button class="btn" id="btnNuevaF">Agregar hoja</button>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-head"><h3>Comercial</h3>
+        <button class="btn sec mini" id="btnActComAj">Actualizar ahora</button></div>
+      <p style="font-size:12.5px;color:var(--tinta3)">Última actualización: ${esc(haceTiempo(comD[0]?.actualizado_en))}</p>
+      ${listaFuentes(comF)}
+      <div class="fila">
+        <div class="campo"><label>Etiqueta</label><input id="fEtiC" placeholder="Ventas y transacciones"></div>
+        <div class="campo"><label>Link CSV publicado</label><input id="fUrlC" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv"></div>
+      </div>
+      <button class="btn" id="btnNuevaC">Agregar hoja</button>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3 style="font-family:'Figtree';font-size:15px;font-weight:600;margin-bottom:10px">Formato esperado de las hojas</h3>
+      <p style="font-size:13.5px;color:var(--tinta2);line-height:1.6">
+        <b>Financiero</b> — dos formas válidas: una fila por concepto con una columna por mes (Concepto | Ene-25 | Feb-25 | ...), o una fila por periodo con columnas de fecha, concepto y valor.<br><br>
+        <b>Comercial</b> — una fila por periodo (día, semana o mes) con una columna de fecha, una de ventas y, si la tienes, una de transacciones. El ticket promedio se calcula solo si no lo traes ya.
+      </p>
+    </div>`);
+
+  document.querySelectorAll('[data-fed]').forEach(b=>{ b.onclick=()=>{ $('#fed'+b.dataset.fed).classList.toggle('on'); }; });
+  document.querySelectorAll('[data-fdel]').forEach(b=>{
+    b.onclick=async()=>{
+      if(!confirm(`¿Eliminar "${b.dataset.nom}"?`)) return;
+      try{ await sb('fuentes_datos',{metodo:'DELETE',q:`?id=eq.${b.dataset.fdel}`}); adminAjustes(); }
+      catch(e){ aviso('No se pudo eliminar: '+e.message,false); }
+    };
+  });
+  document.querySelectorAll('[data-fsave]').forEach(b=>{
+    b.onclick=async()=>{
+      const id=b.dataset.fsave, cuerpo={};
+      document.querySelectorAll(`[data-fid="${id}"]`).forEach(i=>{ cuerpo[i.dataset.ff]=i.value.trim(); });
+      if(!cuerpo.etiqueta) return aviso('La etiqueta no puede quedar vacía.',false);
+      try{ await sb('fuentes_datos',{metodo:'PATCH',q:`?id=eq.${id}`,cuerpo}); aviso('Guardado.'); adminAjustes(); }
+      catch(e){ aviso('No se guardó: '+e.message,false); }
+    };
+  });
+
+  $('#btnNuevaF').onclick=async()=>{
+    if(!$('#fEtiF').value.trim()) return aviso('Ponle una etiqueta a la hoja.',false);
+    try{
+      await sb('fuentes_datos',{metodo:'POST',cuerpo:{modulo:'financiero',etiqueta:$('#fEtiF').value.trim(),
+        url:$('#fUrlF').value.trim()||null,orden:Date.now()%100000}});
+      adminAjustes();
+    }catch(e){ aviso('No se guardó: '+e.message,false); }
+  };
+  $('#btnNuevaC').onclick=async()=>{
+    if(!$('#fEtiC').value.trim()) return aviso('Ponle una etiqueta a la hoja.',false);
+    try{
+      await sb('fuentes_datos',{metodo:'POST',cuerpo:{modulo:'comercial',etiqueta:$('#fEtiC').value.trim(),
+        url:$('#fUrlC').value.trim()||null,orden:Date.now()%100000}});
+      adminAjustes();
+    }catch(e){ aviso('No se guardó: '+e.message,false); }
+  };
+
+  $('#btnActFinAj').onclick=async e=>{
+    try{ await refrescaFinanciero(e.currentTarget); aviso('Datos financieros actualizados.'); adminAjustes(); }
+    catch(err){ aviso('No se pudo actualizar: '+err.message,false); }
+  };
+  $('#btnActComAj').onclick=async e=>{
+    try{ await refrescaComercial(e.currentTarget); aviso('Datos comerciales actualizados.'); adminAjustes(); }
+    catch(err){ aviso('No se pudo actualizar: '+err.message,false); }
+  };
 }
 </script>
 </body>

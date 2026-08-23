@@ -1613,6 +1613,12 @@ function parseValorNum(txt){
     else s=s.replace(/,/g,'');
   } else if(s.includes(',')){
     s = /,\d{1,2}$/.test(s) ? s.replace(',','.') : s.replace(/,/g,'');
+  } else if(s.includes('.')){
+    // sin coma: un punto seguido de 3 dígitos exactos (o varios puntos) es
+    // separador de miles estilo "1.284" (mil doscientos ochenta y cuatro),
+    // no un decimal — un decimal normal trae 1 o 2 dígitos después del punto.
+    const partes=s.split('.');
+    if(partes.length>2 || (partes[1]&&partes[1].length===3)) s=partes.join('');
   }
   const v=parseFloat(s);
   if(isNaN(v)) return null;
@@ -1625,18 +1631,50 @@ function parsePeriodo(txt){
   const t=String(txt).trim().toLowerCase();
   if(!t) return null;
   for(const [abr,idx] of Object.entries(MESES_ABR)){
-    const rx=new RegExp('^'+abr+"[a-z]*[\\s./-]*'?(\\d{2,4})$");
+    // el año es opcional: "ene-25"/"enero 2025" lo usan, "ENE."/"Enero" solo
+    // (columnas o celdas de un año fiscal en curso) asumen el año actual.
+    const rx=new RegExp('^'+abr+"[a-z]*[\\s./-]*'?(\\d{2,4})?$");
     const mm=t.match(rx);
-    if(mm){ let a=+mm[1]; if(a<100)a+=2000; return new Date(a,idx,1); }
+    if(mm){ let a=mm[1]?+mm[1]:new Date().getFullYear(); if(a<100)a+=2000; return new Date(a,idx,1); }
   }
   return null;
+}
+/* localiza la fila de encabezados reales dentro de las primeras filas del
+   CSV — muchas hojas traen un título/banner arriba (logo, año, gráfico)
+   antes de la fila con los nombres de columna de verdad. */
+function detectaFilaHeader(filas){
+  for(let i=0;i<Math.min(filas.length,15);i++){
+    const fila=filas[i];
+    const noVacias=fila.filter(c=>String(c||'').trim()!=='').length;
+    if(noVacias<2) continue;
+    const celdasPeriodo=fila.filter(c=>parsePeriodo(c)).length;
+    const tieneClave=fila.some(c=>/concepto|cuenta|rubro|categoria|detalle|^mes$|^fecha$|periodo/i.test(normHeader(c)));
+    if(celdasPeriodo>=2||tieneClave) return i;
+  }
+  return 0;
+}
+/* arma filas {encabezado:valor} a partir de la fila de encabezados detectada,
+   y se detiene en la primera fila totalmente vacía (para no arrastrar una
+   segunda tabla o un gráfico que venga más abajo en la misma pestaña). */
+function datosDesdeFila(filas,idxHeader){
+  const headers=(filas[idxHeader]||[]).map(h=>String(h||'').trim());
+  const out=[];
+  for(let i=idxHeader+1;i<filas.length;i++){
+    const fila=filas[i];
+    if(!fila.some(c=>String(c||'').trim()!=='')) break;
+    const obj={};
+    headers.forEach((h,idx)=>{ if(h) obj[h]=fila[idx]; });
+    out.push(obj);
+  }
+  return out;
 }
 async function cargaCSV(url){
   const r=await fetch(url);
   if(!r.ok) throw new Error('HTTP '+r.status);
   const txt=await r.text();
   if(txt.trim().startsWith('<')) throw new Error('NO_PUBLICADO');
-  return Papa.parse(txt,{header:true,skipEmptyLines:true}).data;
+  const filas=Papa.parse(txt,{skipEmptyLines:false}).data;
+  return datosDesdeFila(filas,detectaFilaHeader(filas));
 }
 function fmtMes(iso){ const [y,m]=iso.split('-').map(Number); return MESL[m-1]+' '+y; }
 function haceTiempo(iso){
@@ -1660,7 +1698,10 @@ function ventanaComparada(serie,campo,n){
 function parseFuenteFinanciera(filas,etiquetaFuente){
   if(!filas.length) return [];
   const headers=Object.keys(filas[0]);
-  const conceptoCol=buscaCol(headers,'concepto','cuenta','rubro','categoria','detalle','item','nombre');
+  // muchas hojas dejan la primera columna (el nombre del concepto) sin
+  // encabezado — si no hay una palabra clave reconocible, se asume la
+  // primera columna de todas formas.
+  const conceptoCol=buscaCol(headers,'concepto','cuenta','rubro','categoria','detalle','item','nombre')||headers[0];
   const periodCols=headers.filter(h=>h!==conceptoCol && parsePeriodo(h));
   const registros=[];
   if(conceptoCol && periodCols.length>=2){
@@ -1695,8 +1736,12 @@ function calculaFinanciero(fuentesRegistros){
   const fuentesIngreso=fuentesRegistros.filter(f=>esFuenteIngreso(f.etiqueta));
   const fuentesGasto=fuentesRegistros.filter(f=>esFuenteGasto(f.etiqueta));
 
+  // fila "total": empieza con "total" (Total gastos) o termina en "neto(a)(s)"
+  // / "total(es)" (Ventas netas, Gastos de funcionamiento totales) — cuando
+  // existe, es la cifra autorizada del periodo y evita sumar detalle + total.
+  const esFilaTotal=c=>/^total\b|total(es)?$|neta?s?$/i.test(c.trim());
   function sumaOTotal(regs){
-    const totalRow=regs.find(r=>/^total/i.test(r.concepto.trim()));
+    const totalRow=regs.find(r=>esFilaTotal(r.concepto));
     return totalRow?totalRow.valor:regs.reduce((s,r)=>s+r.valor,0);
   }
   function serieDe(fuentesFiltradas,regexConcepto){
@@ -1706,15 +1751,24 @@ function calculaFinanciero(fuentesRegistros){
         fuentesFiltradas.forEach(f=>{ valor+=sumaOTotal(f.registros.filter(r=>r.periodo===p)); });
       } else {
         const regsP=todos.filter(r=>r.periodo===p && regexConcepto.test(r.concepto));
-        const totalRow=regsP.find(r=>/^total/i.test(r.concepto.trim()));
+        const totalRow=regsP.find(r=>esFilaTotal(r.concepto));
         valor=totalRow?totalRow.valor:regsP.reduce((s,r)=>s+r.valor,0);
       }
       return {periodo:p,valor};
     });
   }
 
-  const serieIngresos=serieDe(fuentesIngreso,/ingres|venta/i);
-  const serieGastos=serieDe(fuentesGasto,/gasto|costo/i);
+  let serieIngresos=serieDe(fuentesIngreso,/ingres|venta/i);
+  let serieGastos=serieDe(fuentesGasto,/gasto|costo/i);
+
+  // las filas de fórmula (totales) suelen traer "0,00" ya calculado en los
+  // meses futuros que todavía no tienen datos cargados, aunque el resto de
+  // filas de esos meses esté en blanco — eso corre el "último periodo" a un
+  // mes vacío. Se recortan los periodos finales donde ingreso y gasto dan
+  // ambos cero, para quedarse con el último mes que sí tiene movimiento.
+  let corte=periodos.length;
+  while(corte>1 && serieIngresos[corte-1].valor===0 && serieGastos[corte-1].valor===0) corte--;
+  periodos.length=corte; serieIngresos=serieIngresos.slice(0,corte); serieGastos=serieGastos.slice(0,corte);
 
   let serieUtilNeta=periodos.map(p=>{
     const r=todos.find(x=>x.periodo===p && /utilidad neta|resultado neto|utilidad del ejercicio/i.test(x.concepto));
@@ -1731,8 +1785,8 @@ function calculaFinanciero(fuentesRegistros){
   function desglose(p){
     if(p==null) return {};
     const regs=fuentesGasto.length
-      ? fuentesGasto.flatMap(f=>f.registros).filter(r=>r.periodo===p && !/^total/i.test(r.concepto.trim()))
-      : todos.filter(r=>r.periodo===p && /gasto|costo/i.test(r.concepto) && !/^total/i.test(r.concepto.trim()));
+      ? fuentesGasto.flatMap(f=>f.registros).filter(r=>r.periodo===p && !esFilaTotal(r.concepto))
+      : todos.filter(r=>r.periodo===p && /gasto|costo/i.test(r.concepto) && !esFilaTotal(r.concepto));
     const m={};
     regs.forEach(r=>{ m[r.concepto]=(m[r.concepto]||0)+r.valor; });
     return m;
@@ -1753,9 +1807,12 @@ function insightsFinancieros(calc){
   const pctIng=prevIng?(ultIng-prevIng)/Math.abs(prevIng)*100:0;
   const pctGas=prevGas?(ultGas-prevGas)/Math.abs(prevGas)*100:0;
 
-  if(pctGas>pctIng+5){
+  if(pctGas>0&&pctGas>pctIng+5){
     out.push({tipo:'alerta',titulo:'Los gastos están creciendo más rápido que los ingresos',
       texto:`En ${fmtMes(periodos[n-1])} los gastos de funcionamiento subieron ${pctGas.toFixed(1)}% mientras los ingresos lo hicieron ${pctIng.toFixed(1)}%. Si esto se repite otro periodo, el margen se va a seguir achicando aunque el negocio esté facturando más.`});
+  } else if(pctGas<=0&&pctIng<0&&pctGas>pctIng+5){
+    out.push({tipo:'alerta',titulo:'El gasto está cayendo más lento que el ingreso',
+      texto:`En ${fmtMes(periodos[n-1])} los ingresos cayeron ${Math.abs(pctIng).toFixed(1)}% mientras los gastos de funcionamiento solo bajaron ${Math.abs(pctGas).toFixed(1)}%. Aunque los dos bajaron, el gasto no se está ajustando al mismo ritmo que la caída de ingresos, y eso presiona el margen.`});
   }
   if(serieUtilNeta[n-1].valor<0){
     out.push({tipo:'alerta',titulo:'El último periodo cerró con pérdida',
@@ -1799,10 +1856,16 @@ function insightsFinancieros(calc){
 function parseFuenteComercial(filas){
   if(!filas.length) return [];
   const headers=Object.keys(filas[0]);
+  // en hojas con comparativo año-vs-año (Venta 2026 / Venta 2025 / Diferencia
+  // Ventas Vs Año Anterior / Presupuesto...) hay que ignorar las columnas de
+  // comparación/diferencia para no agarrar una resta en vez del valor real,
+  // y quedarse con la primera columna "limpia" que matchea (la más reciente).
+  const limpios=headers.filter(h=>!/diferencia|\bvs\b|cumpl|presupuesto/i.test(h));
+  const col=(claves)=>buscaCol(limpios,...claves)||buscaCol(headers,...claves);
   const periodoCol=buscaCol(headers,'fecha','periodo','semana','mes','dia');
-  const ventasCol=buscaCol(headers,'ventas','ingreso','facturacion','monto_total','total_ventas','total');
-  const transCol=buscaCol(headers,'transaccion','numero_ventas','num_ventas','ordenes','pedidos','n_ventas','ventas_num');
-  const ticketCol=buscaCol(headers,'ticket');
+  const ventasCol=col(['venta','ingreso','facturacion','monto_total','total_ventas','total']);
+  const transCol=col(['transaccion','numero_ventas','num_ventas','ordenes','pedidos','n_ventas','ventas_num']);
+  const ticketCol=col(['ticket']);
   if(!periodoCol||!ventasCol) return [];
   const out=[];
   filas.forEach(f=>{

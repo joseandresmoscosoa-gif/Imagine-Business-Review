@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="es-EC">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1A1814">
+<title>IMG Business Review</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231A1814'/%3E%3Ctext x='50' y='66' font-size='42' font-family='Georgia' fill='%23D89A1E' text-anchor='middle'%3EIMG%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+:root{
+  /* amarillo IMG — tomado del textil de marca */
+  --img:#D89A1E; --img-cl:#E9BC63; --img-os:#A87413;
+  --img-vel:rgba(216,154,30,.16); --img-vel2:rgba(216,154,30,.09);
+  /* tintas cálidas, pensadas para convivir con el mostaza */
+  --tinta:#1A1814; --tinta2:#4A443C; --tinta3:#8A8175;
+  --papel:#EFEBE2; --papel2:#F7F4EE; --blanco:#FDFCF9;
+  --verde:#4A6B4E; --verde-vel:rgba(74,107,78,.14);
+  --ladrillo:#9C4F35; --ladrillo-vel:rgba(156,79,53,.13);
+  --linea:rgba(26,24,20,.12); --linea2:rgba(26,24,20,.24);
+  --marca:#D89A1E;
+  --r:3px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  background:var(--papel);color:var(--tinta);
+  font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:15.5px;line-height:1.58;-webkit-font-smoothing:antialiased;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+h1,h2,h3{font-family:'Newsreader',Georgia,serif;font-weight:400;line-height:1.15;letter-spacing:-.005em}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--tinta3)}
+.wrap{max-width:920px;margin:0 auto;padding:0 22px}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;font-size:15px;width:100%;padding:11px 13px;border:1px solid var(--linea2);border-radius:var(--r);background:var(--blanco);color:var(--tinta)}
+textarea{font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.6;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--img);outline-offset:-1px;border-color:var(--img)}
+label{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;color:var(--tinta2)}
+.hide{display:none !important}
+
+/* ════════ MARCA ════════ */
+.marca{display:inline-block;text-align:left;line-height:1}
+.marca .sigla{font-family:'Newsreader',serif;font-weight:500;letter-spacing:.01em}
+.marca .review{font-family:'Newsreader',serif;font-style:italic;font-weight:300;color:var(--img)}
+.marca .slogan{
+  display:block;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.3em;
+  text-transform:uppercase;color:var(--img);margin-top:6px;
+}
+
+/* ════════ PUERTA ════════ */
+#gate{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:30px 22px;background:var(--tinta)}
+.gate-card{width:100%;max-width:344px;text-align:center;color:var(--papel2)}
+.gate-card .marca{text-align:center;display:block}
+.gate-card .sigla{font-size:46px;color:var(--papel2)}
+.gate-card .review{font-size:27px;display:block;margin-top:2px}
+.gate-card .slogan{color:var(--img);opacity:.85}
+.gate-rule{height:2px;background:var(--img);width:52px;margin:22px auto 0}
+.gate-lead{font-size:14px;color:rgba(247,244,238,.66);margin:22px 0 22px;line-height:1.55}
+.pin-dots{display:flex;gap:12px;justify-content:center;margin-bottom:26px}
+.dot{width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(247,244,238,.36);transition:.18s}
+.dot.on{background:var(--img);border-color:var(--img);transform:scale(1.15)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.key{
+  height:60px;border:1px solid rgba(247,244,238,.15);border-radius:var(--r);
+  background:rgba(247,244,238,.045);color:var(--papel2);
+  font-family:'JetBrains Mono',monospace;font-size:21px;font-weight:500;transition:.11s;
+}
+.key:active{background:var(--img);color:var(--tinta);transform:scale(.95)}
+.key.fn{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.gate-msg{min-height:20px;margin-top:18px;font-size:13px;color:var(--img-cl)}
+.gate-foot{margin-top:30px;font-size:11.5px;color:rgba(247,244,238,.38);line-height:1.55}
+
+/* ════════ CABECERA ════════ */
+.topbar{position:sticky;top:0;z-index:40;background:var(--tinta);color:var(--papel2)}
+.topbar-in{display:flex;align-items:center;gap:14px;min-height:60px;padding:9px 0}
+.topbar .marca{margin-right:auto}
+.topbar .sigla{font-size:21px;color:var(--papel2)}
+.topbar .review{font-size:15px}
+.topbar .slogan{font-size:7.5px;letter-spacing:.26em;margin-top:3px}
+.who{text-align:right;line-height:1.25}
+.who strong{display:block;font-size:13.5px;font-weight:600}
+.who span{font-size:9.5px;font-family:'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:rgba(247,244,238,.5)}
+.salir{border:1px solid rgba(247,244,238,.22);border-radius:var(--r);padding:7px 13px;font-size:12px;color:var(--papel2);transition:.15s;flex:none}
+.salir:hover{background:var(--img);border-color:var(--img);color:var(--tinta)}
+
+.tabs{background:var(--papel2);border-bottom:1px solid var(--linea);position:sticky;top:60px;z-index:39;overflow-x:auto}
+.tabs::-webkit-scrollbar{display:none}
+.tabs-in{display:flex;gap:0;min-width:max-content}
+.tab{padding:15px 17px;font-size:13.5px;font-weight:500;color:var(--tinta3);border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
+.tab:hover{color:var(--tinta)}
+.tab[aria-selected="true"]{color:var(--tinta);border-bottom-color:var(--img);font-weight:600}
+
+/* ════════ CONTENIDO ════════ */
+.pane{padding:32px 0 64px;animation:sube .32s ease}
+@keyframes sube{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* cabecera tipo publicación */
+.masthead{border-bottom:2px solid var(--tinta);padding-bottom:16px;margin-bottom:0}
+.masthead h2{font-size:clamp(28px,5vw,42px);margin-top:8px}
+.masthead h2 em{font-style:italic;color:var(--img-os)}
+.issue{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:10px 0 26px;border-bottom:1px solid var(--linea)}
+
+.head{margin-bottom:24px}
+.head h2{font-size:clamp(26px,4.2vw,36px);margin:8px 0 9px}
+.head p{color:var(--tinta2);font-size:15px;max-width:64ch}
+.card{background:var(--blanco);border:1px solid var(--linea2);border-radius:var(--r);padding:24px}
+.card + .card{margin-top:16px}
+
+/* selector de semanas */
+.semanas{display:flex;gap:6px;overflow-x:auto;padding:4px 0 14px;margin-bottom:4px}
+.semanas::-webkit-scrollbar{display:none}
+.sem-chip{
+  flex:none;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.04em;
+  padding:7px 13px;border:1px solid var(--linea2);border-radius:2px;color:var(--tinta3);
+  transition:.15s;white-space:nowrap;
+}
+.sem-chip:hover{border-color:var(--tinta3);color:var(--tinta)}
+.sem-chip[aria-pressed="true"]{background:var(--tinta);border-color:var(--tinta);color:var(--papel2);font-weight:700}
+
+/* estratos con valor */
+.estratos{display:flex;gap:4px;align-items:stretch;height:104px;margin-top:16px}
+.est-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;min-width:0}
+.est-val{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;text-align:center;color:var(--tinta2);white-space:nowrap;overflow:hidden}
+.est-col.actual .est-val{color:var(--img-os)}
+.est-bar{position:relative;border-radius:1px 1px 0 0;background:rgba(26,24,20,.16);transition:.2s;min-height:8px}
+.est-col:hover .est-bar{opacity:.72}
+.est-col.actual .est-bar{background:var(--img)}
+.est-bar::after{content:"";position:absolute;top:-4px;left:0;right:0;height:3px;border-radius:2px}
+.est-bar.mejor::after{background:var(--verde)}
+.est-bar.peor::after{background:var(--ladrillo)}
+
+/* planificación semanal */
+.plan-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.plan-head h3{font-family:'Newsreader',serif;font-size:22px;font-weight:400;margin-top:5px}
+.plan-nav{display:flex;gap:5px;flex:none}
+.nav-b{
+  border:1px solid var(--linea2);border-radius:2px;padding:6px 12px;font-size:13px;
+  color:var(--tinta2);transition:.15s;font-family:'JetBrains Mono',monospace;
+}
+.nav-b:hover{background:var(--img);border-color:var(--img);color:var(--tinta)}
+.cal7{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--linea2);border:1px solid var(--linea2);border-radius:var(--r);overflow:hidden}
+.dia{background:var(--blanco);min-height:96px;padding:9px 8px}
+.dia.finde{background:var(--papel2)}
+.dia.hoy{background:var(--img-vel2);box-shadow:inset 0 2px 0 var(--img)}
+.dia-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.dia-nom{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta3)}
+.dia-num{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600}
+.pieza{
+  background:var(--img-vel);border-left:2px solid var(--img);border-radius:0 2px 2px 0;
+  padding:5px 6px;margin-bottom:4px;font-size:10.5px;line-height:1.32;
+}
+.pieza b{display:block;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--img-os);margin-bottom:2px}
+.plan-lista{margin-top:18px;display:grid;gap:1px;background:var(--linea2);border:1px solid var(--linea2);border-radius:var(--r);overflow:hidden}
+.plan-item{background:var(--blanco);padding:14px 18px;display:grid;grid-template-columns:76px 96px 1fr;gap:16px;align-items:center;font-size:14px}
+.plan-item .pf{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--tinta3);text-transform:uppercase;letter-spacing:.06em}
+.plan-item .pfmt{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--img-os)}
+.plan-vacio{text-align:center;padding:30px 18px;color:var(--tinta3);font-size:13.5px}
+
+/* proyectos */
+.proy{background:var(--blanco);border:1px solid var(--linea2);border-left:3px solid var(--img);border-radius:0 var(--r) var(--r) 0;padding:20px 24px;margin-bottom:14px}
+.proy-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+.proy h3{font-family:'Figtree',sans-serif;font-size:16.5px;font-weight:600;letter-spacing:0}
+.proy p{font-size:14.5px;color:var(--tinta2);max-width:70ch}
+.proy-meta{display:flex;gap:7px;flex-wrap:wrap;flex:none}
+.badge{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:2px}
+.b-cat{background:rgba(26,24,20,.08);color:var(--tinta2)}
+.b-curso{background:var(--verde-vel);color:var(--verde)}
+.b-arrancar{background:var(--img-vel);color:var(--img-os)}
+.b-revision{background:var(--ladrillo-vel);color:var(--ladrillo)}
+.b-listo{background:rgba(26,24,20,.08);color:var(--tinta3)}
+.proy-fecha{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tinta3);margin-top:10px}
+
+@media (max-width:760px){
+  .cal7{grid-template-columns:1fr;background:transparent;border:none;gap:8px}
+  .dia{border:1px solid var(--linea2);border-radius:var(--r);min-height:0;display:flex;gap:12px;align-items:flex-start}
+  .dia-top{flex-direction:column;gap:2px;margin-bottom:0;flex:none;width:44px}
+  .dia-cuerpo{flex:1}
+  .dia:not(.tiene){display:none}
+  .plan-item{grid-template-columns:1fr;gap:5px}
+  .estratos{height:88px}
+  .est-val{font-size:8.5px}
+}
+.estratos-lbl{display:flex;gap:3px;margin-top:7px;font-family:'JetBrains Mono',monospace;font-size:8.5px;color:var(--tinta3)}
+.estratos-lbl span{flex:1;text-align:center;overflow:hidden;white-space:nowrap}
+.leyenda{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:11.5px;color:var(--tinta3)}
+.leyenda i{display:inline-block;width:16px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+
+.titular{font-family:'Newsreader',serif;font-size:clamp(20px,3.2vw,28px);line-height:1.3;padding-top:20px;margin-top:20px;border-top:1px solid var(--linea)}
+
+/* KPIs traducidos */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--linea2);border:1px solid var(--linea2);border-radius:var(--r);overflow:hidden;margin-top:20px}
+.kpi{background:var(--blanco);padding:18px 16px;position:relative}
+.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
+.kpi-nom{font-size:11.5px;font-weight:600;color:var(--tinta2);line-height:1.3}
+.ayuda{width:17px;height:17px;border-radius:50%;border:1px solid var(--linea2);font-size:10px;font-weight:700;color:var(--tinta3);flex:none;line-height:1;display:flex;align-items:center;justify-content:center;transition:.15s}
+.ayuda:hover,.ayuda[aria-expanded="true"]{background:var(--img);border-color:var(--img);color:var(--tinta)}
+.kpi-val{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:500;letter-spacing:-.03em;line-height:1}
+.delta{display:inline-flex;align-items:center;gap:4px;margin-top:9px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;padding:2px 7px;border-radius:2px}
+.d-up{background:var(--verde-vel);color:var(--verde)}
+.d-down{background:var(--ladrillo-vel);color:var(--ladrillo)}
+.d-flat{background:rgba(26,24,20,.07);color:var(--tinta3)}
+.kpi-sub{font-size:11px;color:var(--tinta3);margin-top:7px}
+.kpi-exp{display:none;margin-top:11px;padding-top:11px;border-top:1px dashed var(--linea2);font-size:12px;color:var(--tinta2);line-height:1.5}
+.kpi-exp.on{display:block}
+
+/* bloques */
+.bloque{margin-top:30px}
+.bloque > .eyebrow{display:block;margin-bottom:13px}
+.items{display:grid;gap:1px;background:var(--linea2);border:1px solid var(--linea2);border-radius:var(--r);overflow:hidden}
+.item{background:var(--blanco);padding:19px 21px;display:grid;grid-template-columns:24px 1fr;gap:15px;align-items:start}
+.marca-i{width:9px;height:9px;border-radius:50%;margin-top:7px;flex:none}
+.m-bien{background:var(--verde)}
+.m-opo{background:var(--img)}
+.item h3{font-family:'Figtree',sans-serif;font-size:15.5px;font-weight:600;margin-bottom:5px;letter-spacing:0}
+.item p{font-size:14.5px;color:var(--tinta2)}
+.accion-i{margin-top:11px;font-size:13.5px;padding:10px 14px;background:var(--img-vel2);border-left:2px solid var(--img);border-radius:0 2px 2px 0;color:var(--tinta2)}
+.accion-i b{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;display:block;margin-bottom:4px;color:var(--img-os)}
+
+/* tabla */
+.tabla-box{background:var(--blanco);border:1px solid var(--linea2);border-radius:var(--r);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:580px}
+th{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--tinta3);font-weight:500;text-align:right;padding:12px 14px;border-bottom:1px solid var(--linea2);white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:13px 14px;text-align:right;border-bottom:1px solid var(--linea);font-variant-numeric:tabular-nums}
+td:first-child{text-align:left}
+tr:last-child td{border-bottom:none}
+.pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px;margin-top:4px}
+.p-on{background:var(--verde-vel);color:var(--verde)}
+.p-off{background:rgba(26,24,20,.08);color:var(--tinta3)}
+
+/* audiencia */
+.aud-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.barra-fila{margin-bottom:13px}
+.barra-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.barra-top b{font-weight:600}
+.barra-top span{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--tinta3)}
+.barra{height:8px;background:rgba(26,24,20,.09);border-radius:4px;overflow:hidden}
+.barra i{display:block;height:100%;background:var(--marca);border-radius:4px;transition:width .5s ease}
+.barra i.alt{background:var(--verde)}
+
+.canvas-box{position:relative;height:290px;margin-top:10px}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:5px 11px;border:1px solid var(--linea2);border-radius:2px;color:var(--tinta3);transition:.15s}
+.chip[aria-pressed="true"]{background:var(--tinta);border-color:var(--tinta);color:var(--papel2)}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.card-head h3{font-family:'Figtree',sans-serif;font-size:15px;font-weight:600}
+
+.nota-eq{margin-top:26px;padding:22px 24px;background:var(--tinta);color:var(--papel2);border-radius:var(--r);border-left:3px solid var(--img)}
+.nota-eq .eyebrow{color:var(--img);display:block;margin-bottom:8px}
+.nota-eq p{font-size:15px;line-height:1.62}
+
+/* diario */
+.entrada{padding:26px 0;border-bottom:1px solid var(--linea)}
+.entrada:last-of-type{border-bottom:none}
+.tipo{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;padding:3px 10px;border-radius:2px;margin-bottom:11px}
+.t-dato{background:var(--img-vel);color:var(--img-os)}
+.t-tendencia{background:rgba(26,24,20,.09);color:var(--tinta2)}
+.t-tip{background:var(--verde-vel);color:var(--verde)}
+.t-agenda{background:var(--ladrillo-vel);color:var(--ladrillo)}
+.entrada h3{font-size:clamp(20px,3vw,26px);margin-bottom:10px}
+.entrada p{font-size:15px;color:var(--tinta2);max-width:70ch}
+.fuente{margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tinta3);letter-spacing:.04em}
+
+/* manifiesto */
+.manif{padding:32px 0;border-bottom:1px solid var(--linea);display:grid;grid-template-columns:38px 1fr;gap:22px}
+.manif:last-child{border-bottom:none}
+.manif-n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--img-os);font-weight:700;padding-top:9px}
+.manif h3{font-size:clamp(21px,3.2vw,29px);margin-bottom:11px}
+.manif p{font-size:15.5px;color:var(--tinta2);max-width:68ch;line-height:1.65}
+
+/* admin */
+.btn{background:var(--tinta);color:var(--papel2);padding:11px 20px;border-radius:var(--r);font-size:14px;font-weight:600;transition:.15s}
+.btn:hover{background:var(--img);color:var(--tinta)}
+.btn.sec{background:transparent;color:var(--tinta);border:1px solid var(--linea2)}
+.btn.sec:hover{background:var(--img-vel);border-color:var(--img);color:var(--tinta)}
+.btn.peligro{background:transparent;color:var(--ladrillo);border:1px solid var(--ladrillo)}
+.btn.peligro:hover{background:var(--ladrillo);color:var(--blanco)}
+.btn.mini{padding:6px 12px;font-size:12px}
+.fila{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.fila3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.campo{margin-bottom:14px}
+.acciones-f{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.aviso{padding:12px 15px;border-radius:var(--r);font-size:13.5px;margin-top:16px}
+.a-ok{background:var(--verde-vel);color:var(--verde)}
+.a-mal{background:var(--ladrillo-vel);color:var(--ladrillo)}
+
+.lista-cli{display:grid;gap:1px;background:var(--linea2);border:1px solid var(--linea2);border-radius:var(--r);overflow:hidden}
+.cli-row{background:var(--blanco);padding:15px 18px}
+.cli-main{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.cli-main strong{font-size:14.5px}
+.cli-pin{font-family:'JetBrains Mono',monospace;font-size:14px;background:var(--img-vel);color:var(--img-os);padding:4px 11px;border-radius:2px;letter-spacing:.14em;font-weight:700}
+.cli-sp{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
+.punto{width:10px;height:10px;border-radius:50%;flex:none}
+.cli-edit{display:none;margin-top:16px;padding-top:16px;border-top:1px dashed var(--linea2)}
+.cli-edit.on{display:block}
+.inactivo{opacity:.5}
+
+.vacio{text-align:center;padding:60px 22px;color:var(--tinta3)}
+.vacio h3{font-size:24px;margin-bottom:9px;color:var(--tinta)}
+.vacio p{font-size:14.5px;max-width:46ch;margin:0 auto}
+.cargando{text-align:center;padding:76px 22px;color:var(--tinta3);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+
+@media (max-width:760px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .fila,.fila3,.aud-grid{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .wrap{padding:0 17px}
+  .item{grid-template-columns:1fr;gap:9px}
+  .marca-i{display:none}
+  .manif{grid-template-columns:1fr;gap:11px}
+  .estratos{height:56px}
+  .cli-sp{margin-left:0;width:100%}
+}
+/* academia */
+.leccion{background:var(--blanco);border:1px solid var(--linea2);border-radius:var(--r);padding:22px 24px;margin-bottom:14px;display:grid;grid-template-columns:34px 1fr;gap:18px}
+.lec-n{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--img-os);padding-top:4px}
+.lec-tipo{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;padding:3px 9px;border-radius:2px;margin-bottom:9px;background:var(--img-vel);color:var(--img-os)}
+.leccion h3{font-family:'Figtree',sans-serif;font-size:17px;font-weight:600;letter-spacing:0;margin-bottom:7px}
+.leccion p{font-size:14.5px;color:var(--tinta2);max-width:70ch}
+.lec-aplica{margin-top:13px;padding:12px 15px;background:var(--verde-vel);border-left:2px solid var(--verde);border-radius:0 2px 2px 0;font-size:14px;color:var(--tinta2)}
+.lec-aplica b{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;display:block;margin-bottom:4px;color:var(--verde)}
+.lec-guion{margin-top:13px;padding:14px 16px;background:var(--papel2);border:1px dashed var(--linea2);border-radius:var(--r);font-size:14px;line-height:1.6;font-style:italic}
+.lec-guion b{display:block;font-style:normal;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta3);margin-bottom:6px}
+@media (max-width:520px){.leccion{grid-template-columns:1fr;gap:9px}.lec-n{padding-top:0}}
+
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+@media print{.topbar,.tabs,.salir,.ayuda{display:none}body{background:#fff}.card,.item,.entrada{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<!-- ═══ PUERTA ═══ -->
+<div id="gate">
+  <div class="gate-card">
+    <div class="marca">
+      <span class="sigla">IMG</span>
+      <span class="review">Business Review</span>
+      <span class="slogan">business builder</span>
+    </div>
+    <div class="gate-rule"></div>
+    <p class="gate-lead">Ingresa tu PIN para ver cómo va tu negocio esta semana.</p>
+    <div class="pin-dots" id="dots"></div>
+    <div class="pad" id="pad"></div>
+    <div class="gate-msg" id="gateMsg"></div>
+    <p class="gate-foot">¿No tienes tu PIN o lo olvidaste?<br>Escríbenos y te lo reenviamos.</p>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app" class="hide">
+  <div class="topbar">
+    <div class="wrap topbar-in">
+      <div class="marca">
+        <span class="sigla">IMG</span> <span class="review">Business Review</span>
+        <span class="slogan">business builder</span>
+      </div>
+      <div class="who"><strong id="whoNombre"></strong><span id="whoRol"></span></div>
+      <button class="salir" id="btnSalir">Salir</button>
+    </div>
+  </div>
+  <div class="tabs"><div class="wrap"><div class="tabs-in" id="tabs"></div></div></div>
+  <div class="wrap"><div id="panes"></div></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   CONFIG · reemplazar con los datos del proyecto Supabase
+   ═══════════════════════════════════════════════════════ */
+const SUPA_URL = 'https://loizxeumhvzrjgqdkpyh.supabase.co';
+const SUPA_KEY = 'sb_publishable_QIarXBfHof9cdrS1KASz3Q_zmj7vP5Q';
+const SEMANAS_VISIBLES = 9;   // ~2 meses
+/* ═════════════════════════════════════════════════════ */
+
+const $  = s => document.querySelector(s);
+const el = (t,c,h) => {const n=document.createElement(t); if(c)n.className=c; if(h!=null)n.innerHTML=h; return n;};
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const usd = v => '$'+Number(v||0).toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2});
+const n0  = v => Number(v||0).toLocaleString('es-EC');
+const MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const fecha = d => {const [y,m,dd]=String(d).split('-').map(Number); return dd+' '+MES[m-1];};
+
+/* ═══════════════════════════════════════════════════════
+   MODO DEMO
+   Se enciende solo si arriba siguen las credenciales de
+   ejemplo. Sirve para navegar la app completa sin montar
+   Supabase. Lo que edites aquí NO se guarda: al recargar
+   vuelve al estado inicial.
+   Apenas pegues la URL y la clave reales, se apaga solo.
+   ═══════════════════════════════════════════════════════ */
+const DEMO = SUPA_URL.includes('TU-PROYECTO') || SUPA_KEY.includes('TU_CLAVE');
+
+const D = {
+  clientes:[
+    {id:1,nombre:'IMG · Administración',slug:'img-admin',pin:'1017',rol:'admin',industria:null,acento:'#1A1814',ad_account:null,contacto:null,activo:true},
+    {id:2,nombre:'Premium Peluquería',slug:'premium',pin:'2401',rol:'cliente',industria:'Belleza y peluquería · Cuenca',acento:'#B0743F',ad_account:'58164847',contacto:null,activo:true}
+  ],
+  reportes:[{
+    id:1,cliente_id:2,semana_inicio:'2026-07-13',semana_fin:'2026-07-19',
+    titular:'Semana de mejor respuesta con menos inversión: el contenido conectó más y cada clic salió más barato.',
+    metricas:{
+      inversion:148.96,inversion_prev:165.63,impresiones:60701,impresiones_prev:71824,
+      alcance:23646,alcance_prev:25395,clics:1090,clics_prev:1101,
+      ctr:1.80,ctr_prev:1.53,cpc:0.14,cpc_prev:0.15,cpm:2.45,cpm_prev:2.31,
+      frecuencia:2.57,frecuencia_prev:2.83,
+      conversaciones:71,costo_conversacion:2.00,costo_conversacion_prev:2.11,
+      campanas:[
+        {nombre:'Mensajes WhatsApp · Abril',estado:'Activa',inversion:64.95,alcance:10044,ctr:2.45,cpc:0.11,resultado:'38 conversaciones',costo_resultado:1.71},
+        {nombre:'Campaña Diego',estado:'Pausada',inversion:42.66,alcance:8419,ctr:1.24,cpc:0.20,resultado:'18 conversaciones',costo_resultado:2.37},
+        {nombre:'Mensajes WhatsApp · Julio',estado:'Activa',inversion:34.55,alcance:6399,ctr:2.12,cpc:0.13,resultado:'15 conversaciones',costo_resultado:2.30},
+        {nombre:'Interacción · Julio',estado:'Pausada',inversion:6.80,alcance:4259,ctr:0.39,cpc:0.24,resultado:'Interacciones',costo_resultado:0.05}
+      ],
+      serie:[
+        {semana:'25 may',inversion:127.92,ctr:1.97,cpc:0.09,alcance:38571,frecuencia:1.93},
+        {semana:'1 jun',inversion:137.80,ctr:1.77,cpc:0.09,alcance:44822,frecuencia:1.89},
+        {semana:'8 jun',inversion:132.43,ctr:1.62,cpc:0.12,alcance:37268,frecuencia:1.84},
+        {semana:'15 jun',inversion:112.22,ctr:1.62,cpc:0.12,alcance:32902,frecuencia:1.75},
+        {semana:'22 jun',inversion:127.91,ctr:2.22,cpc:0.10,alcance:27834,frecuencia:2.02},
+        {semana:'29 jun',inversion:137.09,ctr:1.78,cpc:0.12,alcance:23203,frecuencia:2.79},
+        {semana:'6 jul',inversion:165.63,ctr:1.53,cpc:0.15,alcance:25395,frecuencia:2.83},
+        {semana:'13 jul',inversion:148.96,ctr:1.80,cpc:0.14,alcance:23646,frecuencia:2.57}
+      ],
+      audiencia:{
+        edades:[{rango:'18-24',inversion:3.65,ctr:1.85},{rango:'25-34',inversion:542.40,ctr:1.55},
+                {rango:'35-44',inversion:556.74,ctr:1.90},{rango:'45-54',inversion:330.34,ctr:2.47},
+                {rango:'55-64',inversion:130.99,ctr:2.74},{rango:'65+',inversion:50.61,ctr:2.66}],
+        genero:[{g:'Mujeres',porcentaje:96.0},{g:'Hombres',porcentaje:3.7},{g:'Sin especificar',porcentaje:0.3}],
+        ubicaciones:[{u:'Feed de Facebook e Instagram',inversion:1059.59,cpc:0.09},
+                     {u:'Reels de Facebook',inversion:186.88,cpc:0.11},
+                     {u:'Historias de Instagram',inversion:151.10,cpc:0.18},
+                     {u:'Historias de Facebook',inversion:95.16,cpc:0.14},
+                     {u:'Reels de Instagram',inversion:81.80,cpc:0.26},
+                     {u:'Búsqueda',inversion:28.63,cpc:0.14}]
+      }
+    },
+    logros:[
+      {titulo:'La gente reaccionó más a lo que publicamos',texto:'De cada 100 personas que vieron tus anuncios, 1,8 hicieron clic. La semana pasada eran 1,5. Es un salto del 18% en siete días y es la mejor señal de que el mensaje está conectando con la gente correcta.'},
+      {titulo:'Cada clic costó menos que la semana pasada',texto:'Bajamos de 15 a 14 centavos por clic. Trajimos prácticamente la misma cantidad de personas invirtiendo 17 dólares menos. Eso es eficiencia pura: mismo resultado, menos plata.'},
+      {titulo:'Los anuncios dejaron de repetirse tanto',texto:'Cada persona vio tu anuncio 2,57 veces en promedio, contra 2,83 de la semana pasada. Significa que estamos llegando a caras nuevas en vez de insistirle a la misma gente, que es lo que cansa y encarece.'},
+      {titulo:'La campaña principal rindió mejor que su propio promedio',texto:'Mensajes WhatsApp Abril consiguió conversaciones a 1,71 dólares cada una. Su promedio de los últimos tres meses es 1,81. Está en su mejor momento y por eso concentramos ahí el presupuesto.'}
+    ],
+    oportunidades:[
+      {titulo:'Aparecer le costó más caro a la marca esta semana',texto:'Mostrar tus anuncios mil veces costó 2,45 dólares, el valor más alto de las últimas ocho semanas. Pasa cuando las mismas piezas llevan mucho tiempo circulando: la plataforma cobra más por seguir mostrándolas.',accion:'Subimos tres piezas nuevas esta semana y apagamos las que ya cumplieron su ciclo. Con creatividad fresca ese costo suele bajar entre 15 y 25%.'},
+      {titulo:'Hay presupuesto en una campaña que rinde la mitad',texto:'La campaña Diego consiguió conversaciones a 2,37 dólares con apenas 1,24% de interés, mientras la principal las trae a 1,71 con 2,45%. Es la misma inversión comprando resultados más caros.',accion:'Dejamos Diego en pausa y movemos ese presupuesto a la campaña que mejor funciona. Solo con eso deberíamos ganar unas 10 conversaciones extra al mes sin subir un dólar.'},
+      {titulo:'Estamos llegando a menos personas nuevas',texto:'Esta semana vieron tus anuncios 23.646 personas, contra 25.395 la semana pasada. No es grave, pero marca que el público al que le hablamos se empieza a agotar.',accion:'Abrimos un grupo dedicado a mujeres de 45 a 64 años. Es el tramo que mejor responde de toda tu cuenta y hoy recibe menos de la tercera parte del presupuesto.'},
+      {titulo:'Instagram Reels está cobrando el triple por lo mismo',texto:'En el feed cada clic cuesta 9 centavos. En Reels de Instagram cuesta 26. Es el mismo público y el mismo mensaje, pero en un lugar donde tu anuncio compite peor.',accion:'Sacamos Reels de Instagram de la selección y redistribuimos a Feed y Reels de Facebook. Con lo mismo deberíamos comprar cerca de 570 clics adicionales.'}
+    ],
+    nota_equipo:'Semana buena en eficiencia: menos inversión, más interés y clic más barato. El foco de esta semana es renovar creatividades para bajar el costo de aparecer, y abrir el público de 45 a 64 años, que viene respondiendo muy bien y está subaprovechado. Cualquier duda sobre estos números, escríbenos y lo revisamos juntos.'
+  }],
+  industria:[{
+    id:1,cliente_id:2,semana:'2026-07-20',
+    titulo:'La belleza en Ecuador · semana del 20 de julio',
+    intro:'Lo que se movió en tu industria esta semana, con foco en Cuenca y en lo que sirve para tomar decisiones.',
+    entradas:[
+      {tipo:'dato',titulo:'El cuidado del cabello es la categoría que más factura del país',texto:'Según Euromonitor, la categoría de cuidado capilar cerró 2025 con 331 millones de dólares en ventas dentro de Ecuador, y se proyecta que crezca 5% este año hasta llegar a 347 millones. Es la que lidera todo el mercado cosmético nacional. Para un salón esto significa que la demanda de color, tratamiento y alisado sigue creciendo: el mercado no se está achicando, se está poniendo más competido. Ganar no depende de que haya clientes, depende de que te elijan a ti.',fuente:'Euromonitor vía Teleamazonas, julio 2026'},
+      {tipo:'dato',titulo:'El ecuatoriano gasta 120 dólares al año en belleza',texto:'Procosméticos reporta que el sector de cosméticos, higiene y cuidado personal movió 1.575 millones de dólares en 2025, un crecimiento del 4% frente al año anterior, y que genera cerca de 10.000 empleos directos. La belleza dejó de ser un gasto opcional y pasó a ser parte del presupuesto cotidiano de los hogares. Eso te da margen para hablar de valor y no solo de precio.',fuente:'Procosméticos, julio 2026'},
+      {tipo:'tendencia',titulo:'TikTok se volvió el lugar donde la gente descubre la belleza',texto:'Forbes Ecuador señala que las redes sociales, y TikTok en particular, se consolidaron como el espacio donde la gente descubre productos, ingredientes y tendencias antes de comprar. No es solo entretenimiento: es donde tu clienta investiga antes de decidir dónde se hace el color. Un salón que muestra el proceso, y no solo el antes y el después, entra en esa conversación.',fuente:'Forbes Ecuador, enero 2026'},
+      {tipo:'tendencia',titulo:'El cliente quiere entender qué le hicieron, no solo verse bien',texto:'La tendencia de 2026 apunta a un enfoque más natural pero con respaldo técnico: diagnóstico previo, fórmula personalizada y explicación del porqué. La clienta ya no quiere solamente el resultado, quiere entender qué se le aplicó al cabello y por qué esa fórmula y no otra. El salón que explica se posiciona como experto; el que solo entrega resultado compite por precio.',fuente:'Reportes de tendencia del sector imagen personal, 2026'},
+      {tipo:'tip',titulo:'Qué hacer con esto en tu comunicación',texto:'Tres cosas concretas para las próximas dos semanas. Primero: graba el diagnóstico, no solo el resultado. Un video de 20 segundos explicando por qué elegiste una fórmula vale más que diez fotos de antes y después. Segundo: habla de precio con transparencia, porque la gente compara antes de ir. Tercero: nombra Cuenca en tus publicaciones y anuncios. La búsqueda local sigue siendo la más barata de ganar y la que menos aprovechan tus competidores.',fuente:'Lectura del equipo IMG'},
+      {tipo:'agenda',titulo:'Congreso Beauty, Cleaning and Wellness Revolution 2026',texto:'Procosméticos anunció este congreso para reunir a empresas y especialistas del sector a analizar las tendencias del mercado. Vale seguirlo aunque no asistas: de ahí suelen salir las lecturas que después marcan el año comercial de todo la industria.',fuente:'Procosméticos'}
+    ]
+  }],
+  imagine:[
+    {id:1,orden:1,activo:true,titulo:'Business builder, no community manager',cuerpo:'Manejar redes es publicar. Construir un negocio es otra cosa: entender qué vendes, quién te compra, por qué te elige y qué hace falta para que te elija otra vez. Nosotros trabajamos en ese segundo terreno. La pauta, el contenido y la conversación son herramientas, no el trabajo. El trabajo es que tu negocio crezca y que sepas por qué creció.'},
+    {id:2,orden:2,activo:true,titulo:'Este espacio es tuyo porque eres parte de IMG',cuerpo:'IMG Business Review es una herramienta propia de Imagine. No la vendemos aparte ni la alquilamos: existe porque creemos que ser cliente nuestro tiene que sentirse distinto. Cada semana vas a encontrar aquí cómo se movió tu inversión, qué funcionó, qué estamos ajustando y qué está pasando en tu industria. Sin esperar a la reunión de fin de mes y sin tener que pedirlo.'},
+    {id:3,orden:3,activo:true,titulo:'Decisiones informadas, no corazonadas',cuerpo:'Todos los números que ves salen directo de tu cuenta publicitaria, sin retoques ni maquillaje. Si una semana no rindió, lo vas a leer aquí antes de que nos lo preguntes. Preferimos que sepas exactamente dónde estamos parados a que te lleves una sorpresa dentro de tres meses. Un dato incómodo a tiempo vale más que un informe bonito tarde.'},
+    {id:4,orden:4,activo:true,titulo:'Los tropiezos son información, no fracasos',cuerpo:'En publicidad digital nada funciona a la primera y todo se desgasta con el tiempo. Un anuncio que dejó de rendir no es un error: es la señal de que tu público ya lo vio suficiente y toca renovar. Por eso cada reporte tiene una sección de oportunidades de mejora con la acción concreta que vamos a tomar. No es una lista de culpas. Es la agenda de la semana que viene.'},
+    {id:5,orden:5,activo:true,titulo:'Cómo leer tu review sin ser experto',cuerpo:'Arriba están los cuatro números que de verdad importan, escritos en español simple, con una flecha que te dice si mejoraron o empeoraron contra la semana pasada. Verde es que va bien. Ámbar es que hay algo que atender. Cada número tiene un botón de ayuda por si quieres saber qué significa exactamente. Abajo está el detalle campaña por campaña, quién está viendo tus anuncios y la evolución de las últimas ocho semanas. Si algo no te cuadra, escríbenos: este review es el punto de partida de la conversación, no el reemplazo.'}
+  ]
+};
+let demoSeq = 100;
+
+function demoSb(tabla,q,metodo,cuerpo){
+  const tomar = re => { const m = q.match(re); return m ? decodeURIComponent(m[1]) : null; };
+  const idQ  = tomar(/id=eq\.([^&]+)/);
+  const pinQ = tomar(/pin=eq\.([^&]+)/);
+  const cliQ = tomar(/cliente_id=eq\.([^&]+)/);
+  const rolQ = tomar(/rol=eq\.([^&]+)/);
+  const soloActivos = q.includes('activo=eq.true');
+  let filas = D[tabla] || [];
+
+  if(metodo==='POST'){
+    const existente = tabla==='reportes'
+      ? filas.find(f=>f.cliente_id===cuerpo.cliente_id && f.semana_inicio===cuerpo.semana_inicio)
+      : (tabla==='industria'
+          ? filas.find(f=>f.cliente_id===cuerpo.cliente_id && f.semana===cuerpo.semana)
+          : null);
+    if(existente){ Object.assign(existente,cuerpo); return [existente]; }
+    if(tabla==='clientes' && filas.some(f=>f.pin===cuerpo.pin)) throw new Error('duplicate key');
+    const nueva = {id:++demoSeq,activo:true,...cuerpo};
+    filas.push(nueva);
+    return [nueva];
+  }
+  if(metodo==='PATCH'){
+    const f = filas.find(x=>String(x.id)===String(idQ));
+    if(!f) throw new Error('No encontrado');
+    if(tabla==='clientes' && cuerpo.pin && filas.some(x=>x.pin===cuerpo.pin && String(x.id)!==String(idQ)))
+      throw new Error('duplicate key');
+    Object.assign(f,cuerpo);
+    return [f];
+  }
+  if(metodo==='DELETE'){
+    const i = filas.findIndex(x=>String(x.id)===String(idQ));
+    if(i>-1){
+      const borrado = filas[i].id;
+      filas.splice(i,1);
+      if(tabla==='clientes'){
+        D.reportes  = D.reportes.filter(r=>r.cliente_id!==borrado);
+        D.industria = D.industria.filter(r=>r.cliente_id!==borrado);
+      }
+    }
+    return [];
+  }
+
+  let out = filas.slice();
+  if(pinQ) out = out.filter(f=>f.pin===pinQ);
+  if(cliQ) out = out.filter(f=>String(f.cliente_id)===String(cliQ));
+  if(rolQ) out = out.filter(f=>f.rol===rolQ);
+  if(soloActivos) out = out.filter(f=>f.activo);
+  if(q.includes('order=orden.asc'))          out.sort((a,b)=>a.orden-b.orden);
+  if(q.includes('order=nombre.asc'))         out.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  if(q.includes('order=rol.asc'))            out.sort((a,b)=>a.rol.localeCompare(b.rol)||a.nombre.localeCompare(b.nombre));
+  if(q.includes('semana_inicio.desc'))       out.sort((a,b)=>b.semana_inicio.localeCompare(a.semana_inicio));
+  if(q.includes('order=semana.desc'))        out.sort((a,b)=>b.semana.localeCompare(a.semana));
+  const lim = tomar(/limit=(\d+)/);
+  if(lim) out = out.slice(0,Number(lim));
+  return JSON.parse(JSON.stringify(out));
+}
+
+async function sb(tabla,{q='',metodo='GET',cuerpo=null,extra={}}={}){
+  if(DEMO){ await new Promise(r=>setTimeout(r,140)); return demoSb(tabla,q,metodo,cuerpo); }
+  const cfg={method:metodo,headers:{
+    'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json',
+    'Prefer':'return=representation',...extra}};
+  if(cuerpo) cfg.body=JSON.stringify(cuerpo);
+  let r;
+  try{ r=await fetch(`${SUPA_URL}/rest/v1/${tabla}${q}`,cfg); }
+  catch(err){ throw new Error('SIN_CONEXION'); }
+  const txt=await r.text();
+  if(!r.ok) throw new Error(txt||('HTTP '+r.status));
+  return txt?JSON.parse(txt):[];
+}
+
+/* ═══ PUERTA ═══ */
+let pin='', sesion=null;
+function pintaDots(){$('#dots').innerHTML='';for(let i=0;i<4;i++)$('#dots').appendChild(el('div','dot'+(i<pin.length?' on':'')));}
+(function(){
+  ['1','2','3','4','5','6','7','8','9','borrar','0','entrar'].forEach(t=>{
+    const b=el('button','key'+(isNaN(t)?' fn':''),t==='borrar'?'←':(t==='entrar'?'OK':t));
+    b.type='button'; b.setAttribute('aria-label',t==='borrar'?'Borrar':(t==='entrar'?'Entrar':t));
+    b.onclick=()=>{
+      if(t==='borrar') pin=pin.slice(0,-1);
+      else if(t==='entrar'){entrar();return;}
+      else if(pin.length<4) pin+=t;
+      pintaDots(); if(pin.length===4) setTimeout(entrar,170);
+    };
+    $('#pad').appendChild(b);
+  });
+  pintaDots();
+})();
+document.addEventListener('keydown',e=>{
+  if($('#gate').classList.contains('hide'))return;
+  if(/^[0-9]$/.test(e.key)&&pin.length<4){pin+=e.key;pintaDots();if(pin.length===4)setTimeout(entrar,170);}
+  if(e.key==='Backspace'){pin=pin.slice(0,-1);pintaDots();}
+  if(e.key==='Enter')entrar();
+});
+async function entrar(){
+  if(pin.length<4){$('#gateMsg').textContent='Ingresa los 4 dígitos.';return;}
+  $('#gateMsg').textContent='Verificando…';
+  try{
+    const r=await sb('clientes',{q:`?pin=eq.${encodeURIComponent(pin)}&activo=eq.true&select=*`});
+    if(!r.length){$('#gateMsg').textContent='Ese PIN no está activo. Revísalo o escríbenos.';pin='';pintaDots();return;}
+    sesion=r[0]; sessionStorage.setItem('imgPin',pin);
+    $('#gate').classList.add('hide'); $('#app').classList.remove('hide'); arrancar();
+  }catch(err){
+    console.error(err);
+    $('#gateMsg').innerHTML = err.message==='SIN_CONEXION'
+      ? 'No se llegó al servidor.<br><span style="font-size:11.5px;opacity:.75">Revisa que la URL y la clave de Supabase estén bien puestas, y que la app esté publicada en Netlify (dentro de la vista previa de Claude no funciona).</span>'
+      : 'Algo falló al verificar el PIN. Intenta otra vez.';
+    pin=''; pintaDots();
+  }
+}
+$('#btnSalir').onclick=()=>{sessionStorage.removeItem('imgPin');location.reload();};
+/* aviso de modo demo en la puerta */
+if(DEMO){
+  $('.gate-lead').innerHTML =
+    'Modo demostración activo.<br><span style="font-size:12.5px;opacity:.8">Prueba con <b style="color:#D89A1E">2401</b> para ver la vista de cliente o <b style="color:#D89A1E">1017</b> para la de administrador. Los cambios que hagas no se guardan.</span>';
+}
+(()=>{const g=sessionStorage.getItem('imgPin'); if(g){pin=g;pintaDots();entrar();}})();
+
+/* ═══ ARRANQUE ═══ */
+let TABS=[],activo=0;
+function arrancar(){
+  if(DEMO && !document.getElementById('franjaDemo')){
+    const f=el('div',null,'<div class="wrap" style="padding-top:8px;padding-bottom:8px;font-family:\'JetBrains Mono\',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase">Modo demostración · sin base de datos conectada · los cambios no se guardan</div>');
+    f.id='franjaDemo';
+    f.style.cssText='background:#D89A1E;color:#1A1814;text-align:center';
+    $('#app').insertBefore(f,$('#app').firstChild);
+  }
+  $('#whoNombre').textContent=sesion.nombre;
+  $('#whoRol').textContent=sesion.rol==='admin'?'Administración':(sesion.industria||'Cliente');
+  if(sesion.acento&&sesion.rol!=='admin') document.documentElement.style.setProperty('--marca',sesion.acento);
+  TABS = sesion.rol==='admin'
+    ? [['Review semanal',adminReporte],['Industria',adminIndustria],['Academia',adminAcademia],['Proyectos',adminProyectos],['Clientes y PINs',adminClientes],['Textos IMG',adminTextos]]
+    : [['Tu semana',paneSemana],['Academia',paneAcademia],['Proyectos en marcha',paneProyectos],['Tu industria',paneIndustria],['Cómo trabajamos',paneImagine]];
+  $('#tabs').innerHTML='';
+  TABS.forEach(([nom],i)=>{
+    const b=el('button','tab',nom); b.setAttribute('role','tab'); b.setAttribute('aria-selected',i===0);
+    b.onclick=()=>irA(i); $('#tabs').appendChild(b);
+  });
+  irA(0);
+}
+function irA(i){
+  activo=i;
+  [...$('#tabs').children].forEach((b,j)=>b.setAttribute('aria-selected',i===j));
+  $('#panes').innerHTML='<div class="cargando">Cargando…</div>';
+  TABS[i][1](); window.scrollTo({top:0,behavior:'instant'});
+}
+function pinta(h){$('#panes').innerHTML='<div class="pane">'+h+'</div>';}
+function vacio(t,p){pinta(`<div class="vacio"><h3>${esc(t)}</h3><p>${esc(p)}</p></div>`);}
+function aviso(txt,ok=true){
+  const a=el('div','aviso '+(ok?'a-ok':'a-mal'),esc(txt));
+  $('#panes .pane').appendChild(a); a.scrollIntoView({block:'nearest'}); setTimeout(()=>a.remove(),6500);
+}
+
+/* ═══════════════════════════════════════
+   CLIENTE · TU SEMANA
+   ═══════════════════════════════════════ */
+/* ── utilidades de semana (lunes a domingo) ── */
+function lunesDe(d){
+  const x=new Date(d); x.setHours(0,0,0,0);
+  x.setDate(x.getDate()-((x.getDay()+6)%7));
+  return x;
+}
+const isoD = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const DIAS=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const MESL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function rangoTexto(lun){
+  const dom=new Date(lun); dom.setDate(lun.getDate()+6);
+  const mismoMes = lun.getMonth()===dom.getMonth();
+  return mismoMes
+    ? `${lun.getDate()} al ${dom.getDate()} de ${MESL[dom.getMonth()]}`
+    : `${lun.getDate()} de ${MESL[lun.getMonth()]} al ${dom.getDate()} de ${MESL[dom.getMonth()]}`;
+}
+
+/* ─────────────────────────────────────────────────────────
+   MÓDULO DE PLANIFICACIÓN (Google Sheet) — DESACTIVADO
+   El código queda aquí dormido. Para reactivarlo:
+   1. Volver a poner la tarjeta "Qué sale esta semana" en
+      pintaSemana y sus tres botones de navegación.
+   2. Volver a poner el campo sheet_url en adminClientes.
+   Nada de esto se ejecuta mientras esa tarjeta no exista.
+   ───────────────────────────────────────────────────────── */
+/* ── lectura del Google Sheet de planificación ── */
+function parseFecha(txt){
+  if(!txt) return null;
+  const t=String(txt).trim();
+  let m=t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m) return new Date(+m[1],+m[2]-1,+m[3]);
+  m=t.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if(m){ let a=+m[3]; if(a<100)a+=2000; return new Date(a,+m[2]-1,+m[1]); }
+  const d=new Date(t);
+  return isNaN(d)?null:d;
+}
+function normalizaFila(f){
+  const k={};
+  Object.keys(f).forEach(key=>{
+    const n=String(key).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+    k[n]=f[key];
+  });
+  const busca=(...c)=>{
+    for(const x of c){
+      const hit=Object.keys(k).find(y=>y.includes(x));
+      if(hit&&String(k[hit]||'').trim()) return String(k[hit]).trim();
+    }
+    return '';
+  };
+  const fecha=parseFecha(busca('fecha','dia'));
+  if(!fecha) return null;
+  const idea=busca('idea','concepto','tema','contenido','copy','descripcion','mensaje');
+  const formato=busca('formato','tipo','pieza','recurso');
+  if(!idea&&!formato) return null;
+  return {fecha,formato:formato||'Publicación',idea:idea||'—',canal:busca('canal','red','plataforma')};
+}
+async function cargaPlan(url){
+  const r=await fetch(url);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const txt=await r.text();
+  if(txt.trim().startsWith('<')) throw new Error('NO_PUBLICADO');
+  const p=Papa.parse(txt,{header:true,skipEmptyLines:true});
+  return p.data.map(normalizaFila).filter(Boolean).sort((a,b)=>a.fecha-b.fecha);
+}
+
+/* ── panel de planificación ── */
+let planCache=null, planLunes=null;
+
+async function pintaPlan(){
+  const cont=document.getElementById('planCuerpo');
+  if(!cont) return;
+  const lun=planLunes, dom=new Date(lun); dom.setDate(lun.getDate()+6);
+  document.getElementById('planRango').textContent=rangoTexto(lun);
+
+  if(planCache===null){
+    cont.innerHTML='<div class="plan-vacio">Cargando la planificación…</div>';
+    try{ planCache=await cargaPlan(sesion.sheet_url); }
+    catch(e){
+      planCache=[];
+      cont.innerHTML=`<div class="plan-vacio">No pudimos leer la planificación en este momento.${e.message==='NO_PUBLICADO'?'<br><span style="font-size:12px">El documento no está publicado como CSV.</span>':''}</div>`;
+      return;
+    }
+  }
+
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  const dentro=planCache.filter(x=>x.fecha>=lun&&x.fecha<=new Date(dom.getFullYear(),dom.getMonth(),dom.getDate(),23,59));
+
+  let celdas='';
+  for(let i=0;i<7;i++){
+    const d=new Date(lun); d.setDate(lun.getDate()+i);
+    const items=dentro.filter(x=>x.fecha.toDateString()===d.toDateString());
+    celdas+=`<div class="dia ${i>4?'finde':''} ${d.getTime()===hoy.getTime()?'hoy':''} ${items.length?'tiene':''}">
+      <div class="dia-top"><span class="dia-nom">${DIAS[i]}</span><span class="dia-num">${d.getDate()}</span></div>
+      <div class="dia-cuerpo">${items.map(x=>`<div class="pieza"><b>${esc(x.formato)}</b>${esc(x.idea.length>58?x.idea.slice(0,56)+'…':x.idea)}</div>`).join('')}</div>
+    </div>`;
+  }
+
+  cont.innerHTML=`<div class="cal7">${celdas}</div>
+    ${dentro.length
+      ? `<div class="plan-lista">${dentro.map(x=>`<div class="plan-item">
+          <span class="pf">${DIAS[(x.fecha.getDay()+6)%7]} ${x.fecha.getDate()}</span>
+          <span class="pfmt">${esc(x.formato)}</span>
+          <span>${esc(x.idea)}${x.canal?` <span class="pf">· ${esc(x.canal)}</span>`:''}</span>
+        </div>`).join('')}</div>`
+      : '<div class="plan-vacio">No hay publicaciones agendadas para esta semana.</div>'}`;
+}
+
+/* ═══════════════════════════════════════
+   CLIENTE · TU SEMANA
+   ═══════════════════════════════════════ */
+let repsCache=[];
+
+async function paneSemana(){
+  try{ repsCache=await sb('reportes',{q:`?cliente_id=eq.${sesion.id}&select=*&order=semana_inicio.desc&limit=${SEMANAS_VISIBLES}`}); }
+  catch(e){ return vacio('No pudimos cargar tu review','Revisa tu conexión y vuelve a entrar. Si sigue igual, escríbenos.'); }
+  if(!repsCache.length) return vacio('Tu primer review está en camino','En cuanto cerremos la semana vas a ver aquí cómo se movió tu inversión, qué funcionó y qué estamos ajustando.');
+  pintaSemana(0);
+}
+
+function pintaSemana(idx){
+  const r=repsCache[idx], m=r.metricas||{}, serie=m.serie||[], aud=m.audiencia||{};
+  const logros=r.logros||[], opos=r.oportunidades||[], camps=m.campanas||[];
+
+  const maxInv=Math.max(...serie.map(s=>s.inversion),1);
+  const estratos=serie.map((s,i)=>{
+    const h=Math.max(8,Math.round(s.inversion/maxInv*70));
+    const p=serie[i-1]; let cap='';
+    if(p) cap = s.cpc<p.cpc?'mejor':(s.cpc>p.cpc?'peor':'');
+    const ult=i===serie.length-1;
+    return `<div class="est-col ${ult?'actual':''}" title="${esc(s.semana)} · ${usd(s.inversion)}">
+      <span class="est-val">$${Math.round(s.inversion)}</span>
+      <div class="est-bar ${cap}" style="height:${h}px"></div>
+    </div>`;
+  }).join('');
+
+  let idAy=0;
+  function kpi(nom,val,act,prev,{menorEsMejor=false,sub='',ayuda=''}={}){
+    let d='<span class="delta d-flat">primera semana</span>';
+    if(prev!=null&&prev!==0){
+      const pc=(act-prev)/Math.abs(prev)*100;
+      const plano=Math.abs(pc)<1.5;
+      const mejoro=menorEsMejor?pc<0:pc>0;
+      d=`<span class="delta ${plano?'d-flat':(mejoro?'d-up':'d-down')}">${plano?'=':(pc>0?'▲':'▼')} ${Math.abs(pc).toFixed(1)}%</span>`;
+    }
+    const id='ay'+(idAy++);
+    return `<div class="kpi">
+      <div class="kpi-top"><span class="kpi-nom">${nom}</span>
+        ${ayuda?`<button class="ayuda" data-ay="${id}" aria-expanded="false" aria-label="Qué significa">?</button>`:''}</div>
+      <div class="kpi-val">${val}</div>${d}
+      ${sub?`<div class="kpi-sub">${esc(sub)}</div>`:''}
+      ${ayuda?`<div class="kpi-exp" id="${id}">${esc(ayuda)}</div>`:''}
+    </div>`;
+  }
+
+  function barras(lista,campo,fmt,alt=false){
+    const max=Math.max(...lista.map(x=>x[campo]),1);
+    return lista.map(x=>`<div class="barra-fila">
+      <div class="barra-top"><b>${esc(x.etiqueta)}</b><span>${fmt(x[campo])}</span></div>
+      <div class="barra"><i class="${alt?'alt':''}" style="width:${(x[campo]/max*100).toFixed(1)}%"></i></div>
+    </div>`).join('');
+  }
+
+  const chipsSem = repsCache.map((x,i)=>
+    `<button class="sem-chip" data-sem="${i}" aria-pressed="${i===idx}">${fecha(x.semana_inicio)} – ${fecha(x.semana_fin)}</button>`).join('');
+
+  pinta(`
+    <div class="masthead">
+      <span class="eyebrow">Review semanal · ${fecha(r.semana_inicio)} al ${fecha(r.semana_fin)}</span>
+      <h2>Cómo se movió <em>${esc(sesion.nombre)}</em></h2>
+    </div>
+    <div class="issue">
+      <span class="eyebrow">${esc(sesion.industria||'')}</span>
+      <span class="eyebrow">Comparado con la semana anterior</span>
+    </div>
+
+    ${repsCache.length>1?`<span class="eyebrow" style="display:block;margin-bottom:8px">Elige la semana que quieres ver</span>
+    <div class="semanas" id="semanas">${chipsSem}</div>`:''}
+
+    <div class="card">
+      <span class="eyebrow">Cuánto se invirtió cada semana</span>
+      <div class="estratos">${estratos}</div>
+      <div class="estratos-lbl">${serie.map(s=>`<span>${esc(s.semana)}</span>`).join('')}</div>
+      <div class="leyenda">
+        <span><i style="background:var(--verde)"></i>Semana en que el costo bajó</span>
+        <span><i style="background:var(--ladrillo)"></i>Semana en que el costo subió</span>
+        <span><i style="background:var(--marca);height:8px;border-radius:2px"></i>Semana actual</span>
+      </div>
+      ${r.titular?`<p class="titular">${esc(r.titular)}</p>`:''}
+    </div>
+
+    <div class="kpis">
+      ${kpi('Cuánto se invirtió',usd(m.inversion),m.inversion,m.inversion_prev,
+        {sub:'En los 7 días',ayuda:'El dinero que se gastó en publicidad esta semana. No incluye honorarios ni producción.'})}
+      ${kpi('A cuántas personas llegamos',n0(m.alcance),m.alcance,m.alcance_prev,
+        {sub:n0(m.impresiones)+' veces se mostró',ayuda:'Personas distintas que vieron al menos una vez tu anuncio. Si el mismo anuncio se le mostró tres veces a alguien, cuenta como una sola persona. En Meta aparece como Alcance.'})}
+      ${kpi('Nivel de interés <span style="color:var(--tinta3);font-weight:500">(CTR)</span>',(m.ctr??0).toFixed(2)+'%',m.ctr,m.ctr_prev,
+        {sub:n0(m.clics)+' personas hicieron clic',ayuda:'De cada 100 personas que vieron tu anuncio, cuántas hicieron clic. Arriba de 1,5% es una buena señal: significa que el mensaje conecta. En Meta se llama CTR.'})}
+      ${m.conversaciones!=null
+        ? kpi('Cuánto costó cada conversación',usd(m.costo_conversacion),m.costo_conversacion,m.costo_conversacion_prev,
+          {menorEsMejor:true,sub:n0(m.conversaciones)+' personas escribieron',ayuda:'Cuánto costó lograr que una persona te escribiera por WhatsApp. Mientras más bajo, mejor: significa que estás consiguiendo clientes potenciales más baratos. En Meta es el costo por resultado.'})
+        : kpi('Cuánto costó cada clic <span style="color:var(--tinta3);font-weight:500">(CPC)</span>',usd(m.cpc),m.cpc,m.cpc_prev,
+          {menorEsMejor:true,ayuda:'Lo que costó que una persona hiciera clic en tu anuncio. Mientras más bajo, mejor. En Meta se llama CPC.'})}
+    </div>
+
+    ${logros.length?`<div class="bloque"><span class="eyebrow">Lo que funcionó</span>
+      <div class="items">${logros.map(l=>`<div class="item"><div class="marca-i m-bien"></div>
+        <div><h3>${esc(l.titulo)}</h3><p>${esc(l.texto)}</p></div></div>`).join('')}</div></div>`:''}
+
+    ${opos.length?`<div class="bloque"><span class="eyebrow">Oportunidades de mejora</span>
+      <div class="items">${opos.map(o=>`<div class="item"><div class="marca-i m-opo"></div>
+        <div><h3>${esc(o.titulo)}</h3><p>${esc(o.texto)}</p>
+        ${o.accion?`<div class="accion-i"><b>Lo que vamos a hacer</b>${esc(o.accion)}</div>`:''}</div></div>`).join('')}</div></div>`:''}
+
+    ${camps.length?`<div class="bloque"><span class="eyebrow">Detalle por campaña</span>
+      <div class="tabla-box"><table>
+        <thead><tr><th>Campaña</th><th>Inversión</th><th>Personas</th><th>Interés</th><th>Resultado</th><th>Costo c/u</th></tr></thead>
+        <tbody>${camps.map(c=>`<tr>
+          <td><strong>${esc(c.nombre)}</strong><br><span class="pill ${c.estado==='Activa'?'p-on':'p-off'}">${esc(c.estado||'')}</span></td>
+          <td class="mono">${usd(c.inversion)}</td><td class="mono">${n0(c.alcance)}</td>
+          <td class="mono">${(c.ctr??0).toFixed(2)}%</td><td>${esc(c.resultado||'—')}</td>
+          <td class="mono">${c.costo_resultado!=null?usd(c.costo_resultado):'—'}</td></tr>`).join('')}</tbody>
+      </table></div></div>`:''}
+
+    ${(aud.edades||aud.genero||aud.ubicaciones)?`<div class="bloque">
+      <span class="eyebrow">Quién está viendo tus anuncios</span>
+      <div class="aud-grid">
+        ${aud.edades?`<div class="card"><div class="card-head"><h3>Por edad</h3></div>
+          <p style="font-size:12.5px;color:var(--tinta3);margin-bottom:14px">Cuánto se invirtió en cada grupo</p>
+          ${barras(aud.edades.map(x=>({etiqueta:x.rango+' años',v:x.inversion,ctr:x.ctr})),'v',usd)}
+          <p style="font-size:12.5px;color:var(--tinta2);margin-top:16px;padding-top:14px;border-top:1px solid var(--linea)">
+            <b>Quién responde mejor:</b> ${esc((aud.edades.slice().sort((a,b)=>b.ctr-a.ctr)[0]||{}).rango||'—')} años, con ${((aud.edades.slice().sort((a,b)=>b.ctr-a.ctr)[0]||{}).ctr||0).toFixed(2)}% de interés.</p>
+        </div>`:''}
+        ${aud.genero?`<div class="card"><div class="card-head"><h3>Por género</h3></div>
+          <p style="font-size:12.5px;color:var(--tinta3);margin-bottom:14px">Porcentaje de la inversión</p>
+          ${barras(aud.genero.map(x=>({etiqueta:x.g,v:x.porcentaje})),'v',v=>v.toFixed(1)+'%',true)}
+        </div>`:''}
+      </div>
+      ${aud.ubicaciones?`<div class="card" style="margin-top:16px">
+        <div class="card-head"><h3>Dónde aparecieron tus anuncios</h3></div>
+        <p style="font-size:12.5px;color:var(--tinta3);margin-bottom:14px">Inversión por lugar dentro de Facebook e Instagram</p>
+        ${barras(aud.ubicaciones.map(x=>({etiqueta:x.u,v:x.inversion})),'v',usd)}
+      </div>`:''}
+    </div>`:''}
+
+    ${serie.length>1?`<div class="card" style="margin-top:30px">
+      <div class="card-head"><h3>Las últimas ${serie.length} semanas</h3>
+        <div class="chips" id="chipsSerie">
+          <button class="chip" data-k="ctr" aria-pressed="true">Interés (CTR)</button>
+          <button class="chip" data-k="cpc" aria-pressed="false">Costo por clic</button>
+          <button class="chip" data-k="alcance" aria-pressed="false">Personas</button>
+          <button class="chip" data-k="frecuencia" aria-pressed="false">Repeticiones (frecuencia)</button>
+        </div></div>
+      <div class="canvas-box"><canvas id="chSerie"></canvas></div>
+    </div>`:''}
+
+    ${r.nota_equipo?`<div class="nota-eq"><span class="eyebrow">Nota del equipo IMG</span><p>${esc(r.nota_equipo)}</p></div>`:''}
+  `);
+
+  document.querySelectorAll('.ayuda').forEach(b=>{
+    b.onclick=()=>{const c=$('#'+b.dataset.ay),on=c.classList.toggle('on');b.setAttribute('aria-expanded',on);};
+  });
+  const cs=document.getElementById('semanas');
+  if(cs) cs.addEventListener('click',e=>{
+    const b=e.target.closest('.sem-chip'); if(!b) return;
+    pintaSemana(Number(b.dataset.sem));
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+  if(serie.length>1) dibujaSerie(serie);
+}
+
+/* etiquetas de valor sobre las barras del gráfico */
+const etiquetasBarra={
+  id:'etiquetasBarra',
+  afterDatasetsDraw(ch){
+    const ds=ch.getDatasetMeta(0); if(!ds||ds.hidden) return;
+    const g=ch.ctx; g.save();
+    g.font="600 9.5px 'JetBrains Mono', monospace";
+    g.fillStyle='#4A443C'; g.textAlign='center';
+    ds.data.forEach((bar,i)=>{
+      const v=ch.data.datasets[0].data[i];
+      if(v==null) return;
+      g.fillText('$'+Math.round(v), bar.x, bar.y-6);
+    });
+    g.restore();
+  }
+};
+
+let chSerie=null;
+function dibujaSerie(serie){
+  const marca=getComputedStyle(document.documentElement).getPropertyValue('--marca').trim()||'#D89A1E';
+  const META={ctr:{lbl:'Interés (CTR)',fmt:v=>v.toFixed(2)+'%'},cpc:{lbl:'Costo por clic',fmt:v=>usd(v)},
+              alcance:{lbl:'Personas',fmt:v=>n0(v)},frecuencia:{lbl:'Repeticiones (frecuencia)',fmt:v=>v.toFixed(2)}};
+  let k='ctr';
+  Chart.defaults.font.family="'Figtree', sans-serif";
+  Chart.defaults.color='#8A8175';
+  chSerie=new Chart($('#chSerie'),{
+    data:{labels:serie.map(s=>s.semana),datasets:[
+      {type:'bar',label:'Inversión',data:serie.map(s=>s.inversion),
+       backgroundColor:'rgba(26,24,20,.11)',hoverBackgroundColor:'rgba(26,24,20,.2)',
+       borderRadius:2,yAxisID:'y',order:2,barPercentage:.64},
+      {type:'line',label:META[k].lbl,data:serie.map(s=>s[k]),borderColor:marca,borderWidth:2.5,
+       tension:.34,pointRadius:4,pointHoverRadius:7,pointBackgroundColor:'#FDFCF9',
+       pointBorderColor:marca,pointBorderWidth:2,yAxisID:'y2',order:1}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      layout:{padding:{top:18}},
+      scales:{x:{grid:{display:false},border:{color:'rgba(26,24,20,.12)'},ticks:{font:{size:10.5}}},
+        y:{grid:{color:'rgba(26,24,20,.08)',drawTicks:false},border:{display:false},ticks:{callback:v=>'$'+v,font:{size:10}}},
+        y2:{position:'right',grid:{display:false},border:{display:false},ticks:{font:{size:10}}}},
+      plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:9,padding:14,font:{size:11.5}}},
+        tooltip:{backgroundColor:'#1A1814',padding:11,cornerRadius:3,displayColors:false,
+          bodyFont:{family:"'JetBrains Mono', monospace",size:11.5},
+          callbacks:{label:ctx=>{const s=serie[ctx.dataIndex];
+            return ctx.datasetIndex===0?'Inversión  '+usd(s.inversion):META[k].lbl+'  '+META[k].fmt(s[k]);}}}}},
+    plugins:[etiquetasBarra]
+  });
+  $('#chipsSerie').addEventListener('click',e=>{
+    const b=e.target.closest('.chip'); if(!b)return;
+    k=b.dataset.k;
+    [...$('#chipsSerie').children].forEach(c=>c.setAttribute('aria-pressed',c===b));
+    chSerie.data.datasets[1].data=serie.map(s=>s[k]);
+    chSerie.data.datasets[1].label=META[k].lbl;
+    chSerie.update();
+  });
+}
+
+/* ═══ CLIENTE · ACADEMIA ═══ */
+async function paneAcademia(){
+  let d;
+  try{ d=await sb('academia',{q:`?cliente_id=eq.${sesion.id}&select=*&order=semana.desc&limit=1`}); }
+  catch(e){ return vacio('No pudimos cargar la Academia','Revisa tu conexión y vuelve a intentar.'); }
+  if(!d.length) return vacio('Tu Academia empieza pronto','Cada semana vas a encontrar acá cosas concretas que puedes aplicar: cómo responder mensajes para cerrar más ventas, cómo subir el ticket promedio, y en qué te puede ayudar la inteligencia artificial.');
+  const x=d[0], lec=x.lecciones||[];
+  const T={respuestas:'Cerrar por chat',ventas:'Vender más',ticket:'Subir el ticket',
+           ia:'Con inteligencia artificial',fidelizacion:'Que vuelvan',equipo:'Con tu equipo'};
+  pinta(`
+    <div class="masthead"><span class="eyebrow">Academia IMG</span>
+      <h2>${esc(x.titulo||'Para aplicar esta semana')}</h2></div>
+    <div class="issue"><span class="eyebrow">${esc(sesion.nombre)}</span>
+      <span class="eyebrow">Semana del ${fecha(x.semana)}</span></div>
+    ${x.intro?`<p style="font-size:16.5px;color:var(--tinta2);max-width:66ch;margin-bottom:24px;line-height:1.6">${esc(x.intro)}</p>`:''}
+    ${lec.map((l,i)=>`<div class="leccion">
+      <div class="lec-n">${String(i+1).padStart(2,'0')}</div>
+      <div>
+        ${l.tipo?`<span class="lec-tipo">${esc(T[l.tipo]||l.tipo)}</span>`:''}
+        <h3>${esc(l.titulo)}</h3>
+        <p>${esc(l.texto)}</p>
+        ${l.guion?`<div class="lec-guion"><b>Ejemplo listo para usar</b>${esc(l.guion)}</div>`:''}
+        ${l.aplicalo?`<div class="lec-aplica"><b>Hazlo esta semana</b>${esc(l.aplicalo)}</div>`:''}
+      </div>
+    </div>`).join('')}
+    <p class="fuente" style="margin-top:28px">Contenido preparado por el equipo IMG para tu negocio. Si quieres que profundicemos en alguno de estos puntos, escríbenos.</p>
+  `);
+}
+
+/* ═══ CLIENTE · PROYECTOS EN MARCHA ═══ */
+async function paneProyectos(){
+  let ps;
+  try{ ps=await sb('proyectos',{q:`?cliente_id=eq.${sesion.id}&activo=eq.true&select=*&order=orden.asc`}); }
+  catch(e){ return vacio('No pudimos cargar esta sección','Revisa tu conexión y vuelve a intentar.'); }
+  if(!ps.length) return vacio('Todavía no hay proyectos publicados','Aquí vas a ver en qué está trabajando el equipo para tu marca más allá de la pauta: producciones, alianzas, integraciones y todo lo que se está moviendo.');
+  const clase=e=>({'En curso':'b-curso','Por arrancar':'b-arrancar','En revisión':'b-revision','Listo':'b-listo'}[e]||'b-cat');
+  pinta(`
+    <div class="masthead"><span class="eyebrow">Al día de hoy</span>
+      <h2>En qué estamos <em>trabajando</em></h2></div>
+    <div class="issue"><span class="eyebrow">${esc(sesion.nombre)}</span>
+      <span class="eyebrow">${ps.length} ${ps.length===1?'frente abierto':'frentes abiertos'}</span></div>
+    <p style="font-size:16px;color:var(--tinta2);max-width:66ch;margin-bottom:24px;line-height:1.6">
+      Más allá de lo que se publica, esto es lo que el equipo tiene en marcha para tu marca.</p>
+    ${ps.map(p=>`<div class="proy">
+      <div class="proy-top">
+        <h3>${esc(p.titulo)}</h3>
+        <div class="proy-meta">
+          ${p.categoria?`<span class="badge b-cat">${esc(p.categoria)}</span>`:''}
+          ${p.estado?`<span class="badge ${clase(p.estado)}">${esc(p.estado)}</span>`:''}
+        </div>
+      </div>
+      ${p.descripcion?`<p>${esc(p.descripcion)}</p>`:''}
+      ${p.fecha_objetivo?`<div class="proy-fecha">Fecha objetivo · ${fecha(p.fecha_objetivo)}</div>`:''}
+    </div>`).join('')}
+  `);
+}
+
+/* ═══ CLIENTE · INDUSTRIA ═══ */
+async function paneIndustria(){
+  let d;
+  try{ d=await sb('industria',{q:`?cliente_id=eq.${sesion.id}&select=*&order=semana.desc&limit=1`}); }
+  catch(e){ return vacio('No pudimos cargar tu industria','Revisa tu conexión y vuelve a intentar.'); }
+  if(!d.length) return vacio('Tu diario de industria empieza pronto','Cada semana vas a encontrar acá lo que se mueve en tu sector, con foco en Cuenca: datos de mercado, tendencias de comunicación y consejos que puedes aplicar.');
+  const x=d[0], ent=x.entradas||[];
+  const T={dato:'Dato de mercado',tendencia:'Tendencia',tip:'Aplícalo',agenda:'En agenda'};
+  pinta(`
+    <div class="masthead">
+      <span class="eyebrow">Diario de industria</span>
+      <h2>${esc(x.titulo||'Tu industria esta semana')}</h2>
+    </div>
+    <div class="issue">
+      <span class="eyebrow">${esc(sesion.industria||'')}</span>
+      <span class="eyebrow">Semana del ${fecha(x.semana)}</span>
+    </div>
+    ${x.intro?`<p style="font-size:17px;color:var(--tinta2);max-width:66ch;margin-bottom:6px;line-height:1.6">${esc(x.intro)}</p>`:''}
+    ${ent.map(e=>`<article class="entrada">
+      <span class="tipo t-${esc(e.tipo||'dato')}">${esc(T[e.tipo]||'Nota')}</span>
+      <h3>${esc(e.titulo)}</h3><p>${esc(e.texto)}</p>
+      ${e.fuente?`<div class="fuente">Fuente · ${esc(e.fuente)}</div>`:''}
+    </article>`).join('')}
+    <p class="fuente" style="margin-top:32px">Investigación y redacción del equipo IMG. Los datos citados provienen de las fuentes indicadas en cada nota.</p>
+  `);
+}
+
+/* ═══ CLIENTE · CÓMO TRABAJAMOS ═══ */
+async function paneImagine(){
+  let s;
+  try{ s=await sb('imagine',{q:'?activo=eq.true&select=*&order=orden.asc'}); }
+  catch(e){ return vacio('No pudimos cargar esta sección','Revisa tu conexión y vuelve a intentar.'); }
+  pinta(`
+    <div class="masthead"><span class="eyebrow">Imagine Creative Studio</span>
+      <h2>Cómo <em>trabajamos</em></h2></div>
+    <div class="issue"><span class="eyebrow">business builder</span>
+      <span class="eyebrow">Nuestra forma de operar</span></div>
+    ${s.map((x,i)=>`<div class="manif">
+      <div class="manif-n">${String(i+1).padStart(2,'0')}</div>
+      <div><h3>${esc(x.titulo)}</h3><p>${esc(x.cuerpo)}</p></div></div>`).join('')}
+  `);
+}
+
+/* ═══════════════════════════════════════
+   ADMIN
+   ═══════════════════════════════════════ */
+async function selCli(id='selCli'){
+  const c=await sb('clientes',{q:"?rol=eq.cliente&select=id,nombre&order=nombre.asc"});
+  if(!c.length) return '<select id="'+id+'"><option value="">Sin clientes — créalos primero</option></select>';
+  return `<select id="${id}">${c.map(x=>`<option value="${x.id}">${esc(x.nombre)}</option>`).join('')}</select>`;
+}
+
+/* ── review semanal ── */
+async function adminReporte(){
+  const sel=await selCli();
+  const hoy=new Date(), lun=new Date(hoy);
+  lun.setDate(hoy.getDate()-((hoy.getDay()+6)%7)-7);
+  const dom=new Date(lun); dom.setDate(lun.getDate()+6);
+  const iso=d=>d.toISOString().slice(0,10);
+  pinta(`
+    <div class="head"><span class="eyebrow">Lunes</span>
+      <h2>Publicar el review de la semana</h2>
+      <p>Pega el paquete que te entrega Claude en la caja de abajo y dale a repartir. Se llenan todos los campos solos, los revisas y publicas.</p></div>
+
+    <div class="card" style="border-color:var(--img);border-width:2px">
+      <div class="card-head">
+        <h3 style="color:var(--img-os)">Pegar paquete de Claude</h3>
+        <span class="eyebrow">Un solo bloque</span>
+      </div>
+      <div class="campo">
+        <textarea id="fPaquete" rows="5" placeholder='Pega aquí el bloque completo que empieza con { "cliente": ... }'></textarea>
+      </div>
+      <div class="acciones-f">
+        <button class="btn" id="btnRepartir">Repartir en los campos</button>
+        <button class="btn sec" id="btnTodo">Repartir y publicar todo</button>
+      </div>
+      <p style="font-size:12.5px;color:var(--tinta3);margin-top:12px;line-height:1.5">
+        <b>Repartir</b> llena los campos para que los revises antes de publicar.<br>
+        <b>Repartir y publicar todo</b> guarda de una el review y el diario de industria.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="fila">
+        <div class="campo"><label>Cliente</label>${sel}</div>
+        <div class="campo"><label>Semana</label>
+          <div style="display:flex;gap:8px"><input type="date" id="fIni" value="${iso(lun)}"><input type="date" id="fFin" value="${iso(dom)}"></div></div>
+      </div>
+      <div class="campo"><label>Titular de la semana</label><input id="fTitular" placeholder="Una frase que resuma cómo fue la semana"></div>
+      <div class="campo"><label>Métricas, campañas, serie de 8 semanas y audiencia (JSON)</label>
+        <textarea id="fMetricas" rows="10" placeholder='{"inversion":0,"alcance":0,...,"campanas":[],"serie":[],"audiencia":{}}'></textarea></div>
+      <div class="fila">
+        <div class="campo"><label>Lo que funcionó (JSON)</label><textarea id="fLogros" rows="6"></textarea></div>
+        <div class="campo"><label>Oportunidades de mejora (JSON)</label><textarea id="fOpos" rows="6"></textarea></div>
+      </div>
+      <div class="campo"><label>Nota del equipo</label>
+        <textarea id="fNota" rows="3" style="font-family:'Figtree',sans-serif;font-size:14.5px"></textarea></div>
+      <div class="acciones-f">
+        <button class="btn" id="btnGuardaRep">Publicar review</button>
+        <button class="btn sec" id="btnPlant">Insertar plantilla vacía</button>
+      </div>
+    </div>`);
+
+  /* ── repartir el paquete en los campos ── */
+  let indPendiente = null, acaPendiente = null;
+
+  function leerPaquete(){
+    const crudo = $('#fPaquete').value.trim();
+    if(!crudo) throw new Error('VACIO');
+    // tolera que venga envuelto en ```json ... ```
+    const limpio = crudo.replace(/^```[a-z]*\s*/i,'').replace(/```\s*$/,'').trim();
+    const p = JSON.parse(limpio);
+
+    if(p.cliente){
+      const opciones=[...$('#selCli').options];
+      const norm = s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+      const match = opciones.find(o=>norm(o.text)===norm(p.cliente))
+                 || opciones.find(o=>norm(o.text).includes(norm(p.cliente)));
+      if(match) $('#selCli').value=match.value;
+      else throw new Error('No existe un cliente llamado "'+p.cliente+'". Créalo primero en Clientes y PINs.');
+    }
+    if(p.semana_inicio) $('#fIni').value=p.semana_inicio;
+    if(p.semana_fin)    $('#fFin').value=p.semana_fin;
+    if(p.titular)       $('#fTitular').value=p.titular;
+    if(p.metricas)      $('#fMetricas').value=JSON.stringify(p.metricas,null,2);
+    if(p.logros)        $('#fLogros').value=JSON.stringify(p.logros,null,2);
+    if(p.oportunidades) $('#fOpos').value=JSON.stringify(p.oportunidades,null,2);
+    if(p.nota_equipo)   $('#fNota').value=p.nota_equipo;
+    indPendiente = p.industria || null;
+    acaPendiente = p.academia || null;
+    return p;
+  }
+
+  function errorPaquete(e){
+    if(e.message==='VACIO') return aviso('Pega primero el paquete en la caja de arriba.',false);
+    if(e instanceof SyntaxError) return aviso('El paquete no se pudo leer. Asegúrate de copiar desde la primera llave { hasta la última }.',false);
+    aviso(e.message,false);
+  }
+
+  $('#btnRepartir').onclick=()=>{
+    try{
+      leerPaquete();
+      aviso('Campos llenos'+(indPendiente?' — el diario de industria también viene incluido.':'. Revísalos y publica.'));
+    }catch(e){ errorPaquete(e); }
+  };
+
+  async function guardarReview(){
+    if(!$('#selCli').value) throw new Error('Primero crea un cliente en la pestaña Clientes y PINs.');
+    await sb('reportes',{metodo:'POST',q:'?on_conflict=cliente_id,semana_inicio',
+      extra:{'Prefer':'return=representation,resolution=merge-duplicates'},
+      cuerpo:{cliente_id:Number($('#selCli').value),semana_inicio:$('#fIni').value,semana_fin:$('#fFin').value,
+        titular:$('#fTitular').value.trim()||null,
+        metricas:JSON.parse($('#fMetricas').value||'{}'),
+        logros:JSON.parse($('#fLogros').value||'[]'),
+        oportunidades:JSON.parse($('#fOpos').value||'[]'),
+        nota_equipo:$('#fNota').value.trim()||null}});
+  }
+
+  $('#btnTodo').onclick=async()=>{
+    try{ leerPaquete(); }catch(e){ return errorPaquete(e); }
+    try{
+      await guardarReview();
+      const hechos=['review'];
+      if(indPendiente){
+        await sb('industria',{metodo:'POST',q:'?on_conflict=cliente_id,semana',
+          extra:{'Prefer':'return=representation,resolution=merge-duplicates'},
+          cuerpo:{cliente_id:Number($('#selCli').value),
+            semana:indPendiente.semana,titulo:indPendiente.titulo||null,
+            intro:indPendiente.intro||null,entradas:indPendiente.entradas||[]}});
+        hechos.push('industria');
+      }
+      if(acaPendiente){
+        await sb('academia',{metodo:'POST',q:'?on_conflict=cliente_id,semana',
+          extra:{'Prefer':'return=representation,resolution=merge-duplicates'},
+          cuerpo:{cliente_id:Number($('#selCli').value),
+            semana:acaPendiente.semana,titulo:acaPendiente.titulo||null,
+            intro:acaPendiente.intro||null,lecciones:acaPendiente.lecciones||[]}});
+        hechos.push('academia');
+      }
+      aviso('Publicado: '+hechos.join(' + ')+'. El cliente ya lo ve al entrar.');
+    }catch(e){ aviso('No se guardó: '+e.message,false); }
+  };
+
+  $('#btnPlant').onclick=()=>{
+    $('#fMetricas').value=JSON.stringify({
+      inversion:0,inversion_prev:0,impresiones:0,impresiones_prev:0,alcance:0,alcance_prev:0,
+      clics:0,clics_prev:0,ctr:0,ctr_prev:0,cpc:0,cpc_prev:0,cpm:0,cpm_prev:0,
+      frecuencia:0,frecuencia_prev:0,conversaciones:0,costo_conversacion:0,costo_conversacion_prev:0,
+      campanas:[{nombre:'',estado:'Activa',inversion:0,alcance:0,ctr:0,resultado:'',costo_resultado:0}],
+      serie:[{semana:'',inversion:0,ctr:0,cpc:0,alcance:0,frecuencia:0}],
+      audiencia:{edades:[{rango:'',inversion:0,ctr:0}],genero:[{g:'',porcentaje:0}],ubicaciones:[{u:'',inversion:0,cpc:0}]}
+    },null,2);
+    $('#fLogros').value=JSON.stringify([{titulo:'',texto:''}],null,2);
+    $('#fOpos').value=JSON.stringify([{titulo:'',texto:'',accion:''}],null,2);
+  };
+  $('#btnGuardaRep').onclick=async()=>{
+    try{
+      await guardarReview();
+      aviso('Review publicado. El cliente ya lo ve al entrar.');
+    }catch(e){
+      aviso('No se guardó: '+(e.message.includes('JSON')?'revisa que los bloques JSON estén completos y bien formados.':e.message),false);
+    }
+  };
+}
+
+/* ── industria ── */
+async function adminIndustria(){
+  const sel=await selCli('selCliInd');
+  const hoy=new Date().toISOString().slice(0,10);
+  pinta(`
+    <div class="head"><span class="eyebrow">Diario semanal</span>
+      <h2>Actualizar el módulo de industria</h2>
+      <p>Cada cliente recibe su propio diario. Pide a Claude la investigación de la semana priorizando Cuenca, y pega el resultado.</p></div>
+    <div class="card">
+      <div class="fila">
+        <div class="campo"><label>Cliente</label>${sel}</div>
+        <div class="campo"><label>Semana</label><input type="date" id="iSemana" value="${hoy}"></div>
+      </div>
+      <div class="campo"><label>Título</label><input id="iTitulo" placeholder="La belleza en Cuenca · semana del 27 de julio"></div>
+      <div class="campo"><label>Introducción</label>
+        <textarea id="iIntro" rows="2" style="font-family:'Figtree',sans-serif;font-size:14.5px"></textarea></div>
+      <div class="campo"><label>Entradas (JSON) — tipo: dato · tendencia · tip · agenda</label>
+        <textarea id="iEnt" rows="12"></textarea></div>
+      <div class="acciones-f">
+        <button class="btn" id="btnGuardaInd">Publicar diario</button>
+        <button class="btn sec" id="btnPlantInd">Insertar plantilla</button>
+      </div>
+    </div>`);
+  $('#btnPlantInd').onclick=()=>{
+    $('#iEnt').value=JSON.stringify([
+      {tipo:'dato',titulo:'',texto:'',fuente:''},
+      {tipo:'tendencia',titulo:'',texto:'',fuente:''},
+      {tipo:'tip',titulo:'Qué hacer con esto en tu comunicación',texto:'',fuente:'Lectura del equipo IMG'},
+      {tipo:'agenda',titulo:'',texto:'',fuente:''}
+    ],null,2);
+  };
+  $('#btnGuardaInd').onclick=async()=>{
+    if(!$('#selCliInd').value) return aviso('Primero crea un cliente.',false);
+    try{
+      await sb('industria',{metodo:'POST',q:'?on_conflict=cliente_id,semana',
+        extra:{'Prefer':'return=representation,resolution=merge-duplicates'},
+        cuerpo:{cliente_id:Number($('#selCliInd').value),semana:$('#iSemana').value,
+          titulo:$('#iTitulo').value.trim(),intro:$('#iIntro').value.trim()||null,
+          entradas:JSON.parse($('#iEnt').value||'[]')}});
+      aviso('Diario publicado.');
+    }catch(e){ aviso('No se guardó: '+e.message,false); }
+  };
+}
+
+/* ── clientes: alta, edición, PIN, baja ── */
+async function adminClientes(){
+  const c=await sb('clientes',{q:'?select=*&order=rol.asc,nombre.asc'});
+  pinta(`
+    <div class="head"><span class="eyebrow">Accesos</span>
+      <h2>Clientes y PINs</h2>
+      <p>Cada cliente entra con su PIN de 4 dígitos. Puedes editarlo, desactivarlo temporalmente o eliminarlo del todo.</p></div>
+
+    <div class="lista-cli">${c.map(x=>`
+      <div class="cli-row ${x.activo?'':'inactivo'}">
+        <div class="cli-main">
+          <span class="punto" style="background:${esc(x.acento||'#D89A1E')}"></span>
+          <div><strong>${esc(x.nombre)}</strong>
+            <div style="font-size:12px;color:var(--tinta3)">${esc(x.industria||(x.rol==='admin'?'Administración':'Sin industria asignada'))}</div></div>
+          <span class="cli-pin">${esc(x.pin)}</span>
+          <div class="cli-sp">
+            <button class="btn sec mini" data-ed="${x.id}">Editar</button>
+            <button class="btn sec mini" data-tog="${x.id}" data-act="${x.activo}">${x.activo?'Activo':'Inactivo'}</button>
+            ${x.rol==='admin'?'':`<button class="btn peligro mini" data-del="${x.id}" data-nom="${esc(x.nombre)}">Eliminar</button>`}
+          </div>
+        </div>
+        <div class="cli-edit" id="ed${x.id}">
+          <div class="fila">
+            <div class="campo"><label>Nombre</label><input value="${esc(x.nombre)}" data-f="nombre" data-id="${x.id}"></div>
+            <div class="campo"><label>PIN (4 dígitos)</label><input value="${esc(x.pin)}" inputmode="numeric" maxlength="4" data-f="pin" data-id="${x.id}"></div>
+          </div>
+          <div class="fila3">
+            <div class="campo"><label>Industria</label><input value="${esc(x.industria||'')}" data-f="industria" data-id="${x.id}"></div>
+            <div class="campo"><label>Cuenta publicitaria</label><input value="${esc(x.ad_account||'')}" data-f="ad_account" data-id="${x.id}"></div>
+            <div class="campo"><label>Color</label><input type="color" value="${esc(x.acento||'#D89A1E')}" data-f="acento" data-id="${x.id}" style="height:44px;padding:4px"></div>
+          </div>
+          <div class="campo"><label>Contacto (para reenviar el PIN)</label>
+            <input value="${esc(x.contacto||'')}" data-f="contacto" data-id="${x.id}" placeholder="WhatsApp o correo"></div>
+          <button class="btn mini" data-save="${x.id}">Guardar cambios</button>
+        </div>
+      </div>`).join('')}
+    </div>
+
+    <div class="card" style="margin-top:22px">
+      <h3 style="font-family:'Figtree';font-size:15px;font-weight:600;margin-bottom:16px">Agregar cliente</h3>
+      <div class="fila">
+        <div class="campo"><label>Nombre</label><input id="cNombre" placeholder="Guajibamba"></div>
+        <div class="campo"><label>PIN (4 dígitos, único)</label><input id="cPin" inputmode="numeric" maxlength="4" placeholder="3050"></div>
+      </div>
+      <div class="fila3">
+        <div class="campo"><label>Industria</label><input id="cInd" placeholder="Gastronomía tradicional · Cuenca"></div>
+        <div class="campo"><label>Cuenta publicitaria</label><input id="cAcct" placeholder="2855651768011803"></div>
+        <div class="campo"><label>Color de marca</label><input type="color" id="cColor" value="#D89A1E" style="height:44px;padding:4px"></div>
+      </div>
+      <div class="campo"><label>Contacto</label><input id="cCont" placeholder="WhatsApp o correo"></div>
+      <button class="btn" id="btnNuevo">Crear acceso</button>
+    </div>`);
+
+  document.querySelectorAll('[data-ed]').forEach(b=>{
+    b.onclick=()=>{ $('#ed'+b.dataset.ed).classList.toggle('on'); };
+  });
+
+  document.querySelectorAll('[data-save]').forEach(b=>{
+    b.onclick=async()=>{
+      const id=b.dataset.save, cuerpo={};
+      document.querySelectorAll(`[data-id="${id}"]`).forEach(i=>{
+        cuerpo[i.dataset.f]= i.value.trim()===''? null : i.value.trim();
+      });
+      if(!cuerpo.nombre) return aviso('El nombre no puede quedar vacío.',false);
+      if(!/^\d{4}$/.test(cuerpo.pin||'')) return aviso('El PIN tiene que ser de 4 dígitos.',false);
+      try{
+        await sb('clientes',{metodo:'PATCH',q:`?id=eq.${id}`,cuerpo});
+        aviso('Cambios guardados.'); adminClientes();
+      }catch(e){
+        aviso(e.message.includes('duplicate')?'Ese PIN ya lo tiene otro cliente. Elige otro.':'No se guardó: '+e.message,false);
+      }
+    };
+  });
+
+  document.querySelectorAll('[data-tog]').forEach(b=>{
+    b.onclick=async()=>{
+      try{ await sb('clientes',{metodo:'PATCH',q:`?id=eq.${b.dataset.tog}`,cuerpo:{activo:b.dataset.act!=='true'}}); adminClientes(); }
+      catch(e){ aviso('No se pudo cambiar: '+e.message,false); }
+    };
+  });
+
+  document.querySelectorAll('[data-del]').forEach(b=>{
+    b.onclick=async()=>{
+      const nom=b.dataset.nom;
+      if(!confirm(`¿Eliminar a ${nom}?\n\nSe borran también todos sus reviews semanales y su diario de industria. Esta acción no se puede deshacer.\n\nSi solo quieres pausarle el acceso, usa el botón Activo en vez de este.`)) return;
+      try{
+        await sb('clientes',{metodo:'DELETE',q:`?id=eq.${b.dataset.del}`});
+        adminClientes(); setTimeout(()=>aviso(nom+' fue eliminado junto con su historial.'),120);
+      }catch(e){ aviso('No se pudo eliminar: '+e.message,false); }
+    };
+  });
+
+  $('#btnNuevo').onclick=async()=>{
+    const p=$('#cPin').value.trim(), nom=$('#cNombre').value.trim();
+    if(!nom) return aviso('Falta el nombre del cliente.',false);
+    if(!/^\d{4}$/.test(p)) return aviso('El PIN tiene que ser de 4 dígitos.',false);
+    try{
+      await sb('clientes',{metodo:'POST',cuerpo:{
+        nombre:nom,
+        slug:nom.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),
+        pin:p,rol:'cliente',
+        industria:$('#cInd').value.trim()||null,
+        acento:$('#cColor').value,
+        ad_account:$('#cAcct').value.trim()||null,
+        contacto:$('#cCont').value.trim()||null}});
+      adminClientes(); setTimeout(()=>aviso(nom+' creado. Su PIN es '+p+'.'),120);
+    }catch(e){
+      aviso(e.message.includes('duplicate')?'Ese PIN o nombre ya está en uso. Prueba con otro.':'No se creó: '+e.message,false);
+    }
+  };
+}
+
+/* ── academia ── */
+async function adminAcademia(){
+  const sel=await selCli('selCliAca');
+  const hoy=new Date().toISOString().slice(0,10);
+  pinta(`
+    <div class="head"><span class="eyebrow">Formación semanal</span>
+      <h2>Academia por cliente</h2>
+      <p>Tips cortos y aplicables. Normalmente viene incluido en el paquete semanal, pero acá lo puedes editar o cargar aparte.</p></div>
+    <div class="card">
+      <div class="fila">
+        <div class="campo"><label>Cliente</label>${sel}</div>
+        <div class="campo"><label>Semana</label><input type="date" id="aSemana" value="${hoy}"></div>
+      </div>
+      <div class="campo"><label>Título</label><input id="aTitulo" placeholder="Para aplicar esta semana"></div>
+      <div class="campo"><label>Introducción</label>
+        <textarea id="aIntro" rows="2" style="font-family:'Figtree',sans-serif;font-size:14.5px"></textarea></div>
+      <div class="campo"><label>Lecciones (JSON) — tipo: respuestas · ventas · ticket · ia · fidelizacion · equipo</label>
+        <textarea id="aLec" rows="12"></textarea></div>
+      <div class="acciones-f">
+        <button class="btn" id="btnGuardaAca">Publicar Academia</button>
+        <button class="btn sec" id="btnPlantAca">Insertar plantilla</button>
+      </div>
+    </div>`);
+  $('#btnPlantAca').onclick=()=>{
+    $('#aLec').value=JSON.stringify([
+      {tipo:'respuestas',titulo:'',texto:'',guion:'',aplicalo:''},
+      {tipo:'ticket',titulo:'',texto:'',aplicalo:''},
+      {tipo:'ia',titulo:'',texto:'',aplicalo:''},
+      {tipo:'ventas',titulo:'',texto:'',aplicalo:''}
+    ],null,2);
+  };
+  $('#btnGuardaAca').onclick=async()=>{
+    if(!$('#selCliAca').value) return aviso('Elige un cliente primero.',false);
+    try{
+      await sb('academia',{metodo:'POST',q:'?on_conflict=cliente_id,semana',
+        extra:{'Prefer':'return=representation,resolution=merge-duplicates'},
+        cuerpo:{cliente_id:Number($('#selCliAca').value),semana:$('#aSemana').value,
+          titulo:$('#aTitulo').value.trim()||null,intro:$('#aIntro').value.trim()||null,
+          lecciones:JSON.parse($('#aLec').value||'[]')}});
+      aviso('Academia publicada.');
+    }catch(e){ aviso('No se guardó: '+e.message,false); }
+  };
+}
+
+/* ── proyectos en marcha ── */
+async function adminProyectos(){
+  const sel=await selCli('selCliProy');
+  pinta(`
+    <div class="head"><span class="eyebrow">Frentes abiertos</span>
+      <h2>Proyectos en marcha</h2>
+      <p>Lo que el equipo está trabajando para esa marca más allá de la pauta. El cliente lo ve en su propia pestaña.</p></div>
+    <div class="card">
+      <div class="campo"><label>Cliente</label>${sel}</div>
+      <button class="btn sec mini" id="btnVerProy">Ver sus proyectos</button>
+    </div>
+    <div id="listaProy"></div>
+    <div class="card" style="margin-top:20px">
+      <h3 style="font-family:'Figtree';font-size:15px;font-weight:600;margin-bottom:16px">Agregar proyecto</h3>
+      <div class="campo"><label>Título</label><input id="pTit" placeholder="Producción de contenido para temporada alta"></div>
+      <div class="campo"><label>Descripción</label>
+        <textarea id="pDesc" rows="3" style="font-family:'Figtree',sans-serif;font-size:14.5px" placeholder="Explícalo en lenguaje simple, como se lo contarías al dueño del negocio."></textarea></div>
+      <div class="fila3">
+        <div class="campo"><label>Categoría</label>
+          <select id="pCat">
+            <option>Producción</option><option>Contenido</option><option>Alianzas</option>
+            <option>Integraciones</option><option>Estrategia</option><option>Pauta</option><option>Otro</option>
+          </select></div>
+        <div class="campo"><label>Estado</label>
+          <select id="pEst">
+            <option>Por arrancar</option><option>En curso</option><option>En revisión</option><option>Listo</option>
+          </select></div>
+        <div class="campo"><label>Fecha objetivo</label><input type="date" id="pFec"></div>
+      </div>
+      <button class="btn" id="btnNuevoProy">Agregar</button>
+    </div>`);
+
+  async function verLista(){
+    const id=$('#selCliProy').value;
+    if(!id) return;
+    const ps=await sb('proyectos',{q:`?cliente_id=eq.${id}&select=*&order=orden.asc`});
+    $('#listaProy').innerHTML = ps.length
+      ? `<div class="lista-cli" style="margin-top:16px">${ps.map(p=>`
+          <div class="cli-row ${p.activo?'':'inactivo'}">
+            <div class="cli-main">
+              <div style="flex:1;min-width:200px">
+                <strong>${esc(p.titulo)}</strong>
+                <div style="font-size:12.5px;color:var(--tinta3);margin-top:3px">${esc(p.categoria||'')}${p.estado?' · '+esc(p.estado):''}${p.fecha_objetivo?' · '+fecha(p.fecha_objetivo):''}</div>
+              </div>
+              <div class="cli-sp">
+                <button class="btn sec mini" data-pv="${p.id}" data-act="${p.activo}">${p.activo?'Visible':'Oculto'}</button>
+                <button class="btn peligro mini" data-pd="${p.id}" data-nom="${esc(p.titulo)}">Eliminar</button>
+              </div>
+            </div>
+          </div>`).join('')}</div>`
+      : '<p style="margin-top:16px;font-size:14px;color:var(--tinta3)">Este cliente todavía no tiene proyectos.</p>';
+
+    document.querySelectorAll('[data-pv]').forEach(b=>{
+      b.onclick=async()=>{
+        await sb('proyectos',{metodo:'PATCH',q:`?id=eq.${b.dataset.pv}`,cuerpo:{activo:b.dataset.act!=='true'}});
+        verLista();
+      };
+    });
+    document.querySelectorAll('[data-pd]').forEach(b=>{
+      b.onclick=async()=>{
+        if(!confirm(`¿Eliminar "${b.dataset.nom}"? No se puede deshacer.`)) return;
+        await sb('proyectos',{metodo:'DELETE',q:`?id=eq.${b.dataset.pd}`});
+        verLista();
+      };
+    });
+  }
+
+  $('#btnVerProy').onclick=verLista;
+  $('#selCliProy').onchange=verLista;
+  verLista();
+
+  $('#btnNuevoProy').onclick=async()=>{
+    if(!$('#selCliProy').value) return aviso('Elige un cliente primero.',false);
+    if(!$('#pTit').value.trim()) return aviso('Falta el título del proyecto.',false);
+    try{
+      await sb('proyectos',{metodo:'POST',cuerpo:{
+        cliente_id:Number($('#selCliProy').value),
+        titulo:$('#pTit').value.trim(),
+        descripcion:$('#pDesc').value.trim()||null,
+        categoria:$('#pCat').value,
+        estado:$('#pEst').value,
+        fecha_objetivo:$('#pFec').value||null,
+        orden:Date.now()%100000}});
+      $('#pTit').value=''; $('#pDesc').value=''; $('#pFec').value='';
+      verLista(); aviso('Proyecto agregado.');
+    }catch(e){ aviso('No se guardó: '+e.message,false); }
+  };
+}
+
+/* ── textos IMG ── */
+async function adminTextos(){
+  const s=await sb('imagine',{q:'?select=*&order=orden.asc'});
+  pinta(`
+    <div class="head"><span class="eyebrow">Contenido global</span>
+      <h2>Cómo trabajamos en IMG</h2>
+      <p>Estos textos los ven todos los clientes por igual.</p></div>
+    ${s.map(x=>`<div class="card">
+      <div class="campo"><label>Título</label><input value="${esc(x.titulo)}" data-t="${x.id}"></div>
+      <div class="campo"><label>Cuerpo</label>
+        <textarea rows="5" data-c="${x.id}" style="font-family:'Figtree',sans-serif;font-size:14.5px">${esc(x.cuerpo)}</textarea></div>
+      <div class="acciones-f">
+        <button class="btn mini" data-g="${x.id}">Guardar</button>
+        <button class="btn sec mini" data-v="${x.id}" data-act="${x.activo}">${x.activo?'Visible':'Oculto'}</button>
+      </div></div>`).join('')}`);
+  document.querySelectorAll('[data-g]').forEach(b=>{
+    b.onclick=async()=>{
+      const id=b.dataset.g;
+      try{
+        await sb('imagine',{metodo:'PATCH',q:`?id=eq.${id}`,cuerpo:{
+          titulo:document.querySelector(`[data-t="${id}"]`).value,
+          cuerpo:document.querySelector(`[data-c="${id}"]`).value}});
+        aviso('Texto actualizado.');
+      }catch(e){ aviso('No se guardó: '+e.message,false); }
+    };
+  });
+  document.querySelectorAll('[data-v]').forEach(b=>{
+    b.onclick=async()=>{
+      try{ await sb('imagine',{metodo:'PATCH',q:`?id=eq.${b.dataset.v}`,cuerpo:{activo:b.dataset.act!=='true'}}); adminTextos(); }
+      catch(e){ aviso('No se pudo cambiar: '+e.message,false); }
+    };
+  });
+}
+</script>
+</body>
+</html>

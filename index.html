@@ -1674,8 +1674,7 @@ async function cargaCSV(url){
   if(!r.ok) throw new Error('HTTP '+r.status);
   const txt=await r.text();
   if(txt.trim().startsWith('<')) throw new Error('NO_PUBLICADO');
-  const filas=Papa.parse(txt,{skipEmptyLines:false}).data;
-  return datosDesdeFila(filas,detectaFilaHeader(filas));
+  return Papa.parse(txt,{skipEmptyLines:false}).data;
 }
 function fmtMes(iso){ const [y,m]=iso.split('-').map(Number); return MESL[m-1]+' '+y; }
 function haceTiempo(iso){
@@ -1696,7 +1695,21 @@ function ventanaComparada(serie,campo,n){
 }
 
 /* ── financiero: parseo y cálculo ── */
-function parseFuenteFinanciera(filas,etiquetaFuente){
+function parseFuenteFinanciera(filasCrudas,etiquetaFuente){
+  if(!filasCrudas.length) return [];
+  // intento 1: la hoja trae una fila de encabezados real (Concepto|Ene-25|
+  // Feb-25|... o Fecha|Concepto|Valor).
+  const filas=datosDesdeFila(filasCrudas,detectaFilaHeader(filasCrudas));
+  const conHeader=parseFuenteFinancieraConHeader(filas,etiquetaFuente);
+  if(conHeader.length) return conHeader;
+  // intento 2: no hay fila de encabezados — pasa seguido en hojas con un
+  // gráfico incrustado arriba: lo que se ve como "ENE. FEB. MAR..." es el
+  // eje del gráfico, no texto de una celda, así que no aparece en el CSV.
+  // Se ancla al año que sí aparece como celda suelta y se leen los 12 meses
+  // por posición de columna.
+  return parseFuenteFinancieraSinHeader(filasCrudas,etiquetaFuente);
+}
+function parseFuenteFinancieraConHeader(filas,etiquetaFuente){
   if(!filas.length) return [];
   const headers=Object.keys(filas[0]);
   // muchas hojas dejan la primera columna (el nombre del concepto) sin
@@ -1724,6 +1737,53 @@ function parseFuenteFinanciera(filas,etiquetaFuente){
       if(!pd||valor==null) return;
       const concepto=conceptoCol?(String(f[conceptoCol]||'').trim()||etiquetaFuente):etiquetaFuente;
       registros.push({fuente:etiquetaFuente,concepto,periodo:isoD(pd),valor});
+    });
+  }
+  return registros;
+}
+/* año fiscal de la hoja: una celda suelta con solo 4 dígitos (1900-2099)
+   en las primeras filas — típico de un título tipo "2026" arriba de la tabla. */
+function anioDeHoja(filasCrudas){
+  for(let i=0;i<Math.min(filasCrudas.length,6);i++){
+    for(const c of filasCrudas[i]){
+      const t=String(c||'').trim();
+      if(/^(19|20)\d{2}$/.test(t)) return +t;
+    }
+  }
+  return new Date().getFullYear();
+}
+/* lee una tabla ancha SIN fila de encabezados: ancla a la primera fila con
+   una etiqueta de texto seguida de al menos 3 valores numéricos (eso
+   descarta títulos y notas sueltas), y lee los 12 meses siguientes por
+   posición de columna, en el mismo orden de columnas que la fila ancla.
+   Se detiene tras 2 filas seguidas sin ningún valor numérico — así no
+   arrastra una segunda tabla (p. ej. "Concepto | Monto | %") que venga más
+   abajo en la misma pestaña sin una fila en blanco de por medio. */
+function parseFuenteFinancieraSinHeader(filasCrudas,etiquetaFuente){
+  const anio=anioDeHoja(filasCrudas);
+  let idxConcepto=-1,inicio=-1;
+  for(let i=0;i<filasCrudas.length;i++){
+    const fila=filasCrudas[i];
+    const j=fila.findIndex(c=>String(c||'').trim()!=='');
+    if(j<0) continue;
+    const etiqueta=String(fila[j]).trim();
+    if(parseValorNum(etiqueta)!=null) continue; // celda numérica suelta, no una etiqueta
+    const resto=fila.slice(j+1,j+14);
+    if(resto.filter(c=>parseValorNum(c)!=null).length>=3){ idxConcepto=j; inicio=i; break; }
+  }
+  if(idxConcepto<0) return [];
+  const registros=[];
+  let fallos=0;
+  for(let i=inicio;i<filasCrudas.length;i++){
+    const fila=filasCrudas[i];
+    const concepto=String(fila[idxConcepto]||'').trim();
+    const meses=fila.slice(idxConcepto+1,idxConcepto+13);
+    const numericos=meses.filter(c=>parseValorNum(c)!=null).length;
+    if(!concepto||numericos===0){ fallos++; if(fallos>=2) break; continue; }
+    fallos=0;
+    meses.forEach((v,mIdx)=>{
+      const valor=parseValorNum(v);
+      if(valor!=null) registros.push({fuente:etiquetaFuente,concepto,periodo:isoD(new Date(anio,mIdx,1)),valor});
     });
   }
   return registros;
@@ -1854,7 +1914,8 @@ function insightsFinancieros(calc){
 }
 
 /* ── comercial: parseo y cálculo ── */
-function parseFuenteComercial(filas){
+function parseFuenteComercial(filasCrudas){
+  const filas=datosDesdeFila(filasCrudas,detectaFilaHeader(filasCrudas));
   if(!filas.length) return [];
   const headers=Object.keys(filas[0]);
   // en hojas con comparativo año-vs-año (Venta 2026 / Venta 2025 / Diferencia
